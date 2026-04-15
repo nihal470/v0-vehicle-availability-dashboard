@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Dashboard } from '@/components/fleet/dashboard'
 import type { CategoryWithVehicles, FleetStats, Location, VehicleCategory, Vehicle, VehicleBooking } from '@/lib/types'
-import { Truck } from 'lucide-react'
+import { Truck, Calendar, LogIn } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 async function getFleetData() {
   const supabase = await createClient()
@@ -59,11 +61,35 @@ export default async function FleetPage() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="border-b bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto flex max-w-[1800px] items-center gap-3 px-6 py-4">
-          <Truck className="h-8 w-8" />
-          <div>
-            <h1 className="text-xl font-bold">Fleet Management</h1>
-            <p className="text-sm text-sidebar-foreground/70">Vehicle Availability Dashboard</p>
+        <div className="mx-auto flex max-w-[1800px] items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Truck className="h-8 w-8" />
+            <div>
+              <h1 className="text-xl font-bold">Fleet Management</h1>
+              <p className="text-sm text-sidebar-foreground/70">Vehicle Availability Dashboard</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              asChild
+              variant="secondary"
+              className="bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80"
+            >
+              <Link href="/bookings">
+                <Calendar className="mr-2 h-4 w-4" />
+                Manage Bookings
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="ghost"
+              className="text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              <Link href="/auth/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+              </Link>
+            </Button>
           </div>
         </div>
       </header>
