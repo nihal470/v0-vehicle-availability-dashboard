@@ -24,6 +24,7 @@ export function Dashboard({
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
   const [selectedLocation, setSelectedLocation] = useState('all')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedStatus, setSelectedStatus] = useState('all')
   const [appliedFilters, setAppliedFilters] = useState({
     location: 'all',
     category: 'all',
@@ -43,8 +44,16 @@ export function Dashboard({
       })).filter((cat) => cat.vehicles.length > 0)
     }
 
+    // Filter by vehicle status
+    if (selectedStatus !== 'all') {
+      result = result.map((cat) => ({
+        ...cat,
+        vehicles: cat.vehicles.filter((v) => v.status === selectedStatus),
+      })).filter((cat) => cat.vehicles.length > 0)
+    }
+
     return result
-  }, [initialCategories, appliedFilters])
+  }, [initialCategories, appliedFilters, selectedStatus])
 
   const handleApply = () => {
     setAppliedFilters({
@@ -55,7 +64,26 @@ export function Dashboard({
 
   return (
     <div className="flex flex-col gap-6">
-      <StatsCards stats={stats} />
+      <StatsCards 
+        stats={stats} 
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
+      />
+      
+      {/* Status Filter Info */}
+      {selectedStatus !== 'all' && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2">
+          <p className="text-sm">
+            Showing <span className="font-semibold capitalize">{selectedStatus}</span> vehicles only
+          </p>
+          <button 
+            onClick={() => setSelectedStatus('all')}
+            className="text-sm text-primary hover:underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
       
       <FilterBar
         selectedMonth={selectedMonth}
