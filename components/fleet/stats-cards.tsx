@@ -1,6 +1,6 @@
 'use client'
 
-import { Car, PlayCircle, PauseCircle, Warehouse, CheckCircle } from 'lucide-react'
+import { Car, PlayCircle, PauseCircle, Warehouse, CheckCircle, Wrench } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { FleetStats, VehicleStatus } from '@/lib/types'
@@ -60,10 +60,18 @@ export function StatsCards({ stats, selectedStatus, onStatusChange }: StatsCards
       activeColor: 'bg-sky-500 text-white',
       status: 'available',
     },
+    {
+      label: 'Service',
+      value: stats.maintenance,
+      icon: Wrench,
+      color: 'bg-purple-100 text-purple-700',
+      activeColor: 'bg-purple-500 text-white',
+      status: 'maintenance',
+    },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
       {statItems.map((item) => {
         const isActive = selectedStatus === item.status
         return (

@@ -42,8 +42,9 @@ async function getFleetData() {
     totalVehicles: allVehicles.length,
     runningVehicles: allVehicles.filter((v: Vehicle) => v.status === 'running').length,
     idleVehicles: allVehicles.filter((v: Vehicle) => v.status === 'idle').length,
-    inGarage: allVehicles.filter((v: Vehicle) => v.status === 'garage' || v.status === 'maintenance').length,
+    inGarage: allVehicles.filter((v: Vehicle) => v.status === 'garage').length,
     available: allVehicles.filter((v: Vehicle) => v.status === 'available').length,
+    maintenance: allVehicles.filter((v: Vehicle) => v.status === 'maintenance').length,
   }
 
   return {

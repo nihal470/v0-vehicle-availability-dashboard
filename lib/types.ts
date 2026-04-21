@@ -81,4 +81,5 @@ export interface FleetStats {
   idleVehicles: number
   inGarage: number
   available: number
+  maintenance: number
 }
