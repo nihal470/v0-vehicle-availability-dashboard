@@ -15,7 +15,11 @@ import {
   Car,
   Search,
   Bell,
-  CheckCircle2
+  CheckCircle2,
+  PauseCircle,
+  Warehouse,
+  PlayCircle,
+  CircleDot
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { differenceInDays, format } from 'date-fns'
@@ -153,6 +157,7 @@ function generateAlerts(vehicles: Vehicle[]): VehicleAlert[] {
 export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
 
@@ -160,6 +165,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   
   const criticalAlerts = alerts.filter(a => a.severity === 'critical')
   const warningAlerts = alerts.filter(a => a.severity === 'warning')
+  
+  // Vehicle status counts
+  const statusCounts = useMemo(() => ({
+    idle: vehicles.filter(v => v.status === 'idle').length,
+    garage: vehicles.filter(v => v.status === 'garage').length,
+    running: vehicles.filter(v => v.status === 'running').length,
+    available: vehicles.filter(v => v.status === 'available').length,
+    maintenance: vehicles.filter(v => v.status === 'maintenance').length,
+  }), [vehicles])
 
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((vehicle) => {
@@ -169,10 +183,12 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
         vehicle.model.toLowerCase().includes(searchQuery.toLowerCase())
       
       const matchesCategory = categoryFilter === 'all' || vehicle.category_id === categoryFilter
+      
+      const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
 
-      return matchesSearch && matchesCategory
+      return matchesSearch && matchesCategory && matchesStatus
     })
-  }, [vehicles, searchQuery, categoryFilter])
+  }, [vehicles, searchQuery, categoryFilter, statusFilter])
 
   const getAlertIcon = (type: VehicleAlert['type']) => {
     switch (type) {
@@ -193,7 +209,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
+      {/* Alert Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -241,6 +257,76 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Vehicle Status Filter Buttons */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filter by Vehicle Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+            <Button
+              variant={statusFilter === 'all' ? 'default' : 'outline'}
+              className="flex flex-col h-auto py-4 gap-1"
+              onClick={() => setStatusFilter('all')}
+            >
+              <Car className="h-6 w-6" />
+              <span className="text-lg font-bold">{vehicles.length}</span>
+              <span className="text-xs">All Vehicles</span>
+            </Button>
+            
+            <Button
+              variant={statusFilter === 'running' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'running' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-500/50 text-emerald-700 hover:bg-emerald-50'}`}
+              onClick={() => setStatusFilter('running')}
+            >
+              <PlayCircle className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.running}</span>
+              <span className="text-xs">Running</span>
+            </Button>
+            
+            <Button
+              variant={statusFilter === 'idle' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'idle' ? 'bg-amber-500 hover:bg-amber-600' : 'border-amber-500/50 text-amber-700 hover:bg-amber-50'}`}
+              onClick={() => setStatusFilter('idle')}
+            >
+              <PauseCircle className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.idle}</span>
+              <span className="text-xs">Idle</span>
+            </Button>
+            
+            <Button
+              variant={statusFilter === 'garage' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'garage' ? 'bg-slate-600 hover:bg-slate-700' : 'border-slate-500/50 text-slate-700 hover:bg-slate-50'}`}
+              onClick={() => setStatusFilter('garage')}
+            >
+              <Warehouse className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.garage}</span>
+              <span className="text-xs">In Garage</span>
+            </Button>
+            
+            <Button
+              variant={statusFilter === 'available' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'available' ? 'bg-sky-600 hover:bg-sky-700' : 'border-sky-500/50 text-sky-700 hover:bg-sky-50'}`}
+              onClick={() => setStatusFilter('available')}
+            >
+              <CheckCircle2 className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.available}</span>
+              <span className="text-xs">Available</span>
+            </Button>
+            
+            <Button
+              variant={statusFilter === 'maintenance' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'maintenance' ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500/50 text-purple-700 hover:bg-purple-50'}`}
+              onClick={() => setStatusFilter('maintenance')}
+            >
+              <Wrench className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.maintenance}</span>
+              <span className="text-xs">Maintenance</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Alerts Section */}
       {alerts.length > 0 && (
@@ -324,11 +410,12 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                 <tr className="border-b bg-muted/50">
                   <th className="p-3 text-left text-sm font-medium">Vehicle</th>
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
+                  <th className="p-3 text-left text-sm font-medium">Vehicle Status</th>
                   <th className="p-3 text-left text-sm font-medium">Insurance Expiry</th>
                   <th className="p-3 text-left text-sm font-medium">Mulkiya Renewal</th>
                   <th className="p-3 text-left text-sm font-medium">Current KM</th>
                   <th className="p-3 text-left text-sm font-medium">Next Service</th>
-                  <th className="p-3 text-left text-sm font-medium">Status</th>
+                  <th className="p-3 text-left text-sm font-medium">Alert Status</th>
                   <th className="p-3 text-left text-sm font-medium">Actions</th>
                 </tr>
               </thead>
@@ -355,6 +442,23 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         <div className="text-sm text-muted-foreground">{vehicle.category?.name}</div>
                       </td>
                       <td className="p-3 font-mono">{vehicle.license_plate}</td>
+                      <td className="p-3">
+                        <Badge className={
+                          vehicle.status === 'running' ? 'bg-emerald-500 hover:bg-emerald-600' :
+                          vehicle.status === 'idle' ? 'bg-amber-500 hover:bg-amber-600' :
+                          vehicle.status === 'garage' ? 'bg-slate-500 hover:bg-slate-600' :
+                          vehicle.status === 'available' ? 'bg-sky-500 hover:bg-sky-600' :
+                          vehicle.status === 'maintenance' ? 'bg-purple-500 hover:bg-purple-600' :
+                          'bg-gray-500'
+                        }>
+                          {vehicle.status === 'running' && <PlayCircle className="h-3 w-3 mr-1" />}
+                          {vehicle.status === 'idle' && <PauseCircle className="h-3 w-3 mr-1" />}
+                          {vehicle.status === 'garage' && <Warehouse className="h-3 w-3 mr-1" />}
+                          {vehicle.status === 'available' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                          {vehicle.status === 'maintenance' && <Wrench className="h-3 w-3 mr-1" />}
+                          {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
+                        </Badge>
+                      </td>
                       <td className="p-3">
                         {vehicle.insurance_end_date ? (
                           <div className={insuranceDays !== null && insuranceDays <= 30 
