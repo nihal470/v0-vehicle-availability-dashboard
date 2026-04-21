@@ -31,6 +31,7 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
     insurance_end_date: vehicle.insurance_end_date || '',
     mulkiya_renewal_date: vehicle.mulkiya_renewal_date || '',
     last_service_date: vehicle.last_service_date || '',
+    last_service_km: vehicle.last_service_km?.toString() || '',
     current_km: vehicle.current_km?.toString() || '',
     next_service_km: vehicle.next_service_km?.toString() || '',
     next_service_date: vehicle.next_service_date || '',
@@ -49,6 +50,7 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
         insurance_end_date: formData.insurance_end_date || null,
         mulkiya_renewal_date: formData.mulkiya_renewal_date || null,
         last_service_date: formData.last_service_date || null,
+        last_service_km: formData.last_service_km ? parseInt(formData.last_service_km) : null,
         current_km: formData.current_km ? parseInt(formData.current_km) : null,
         next_service_km: formData.next_service_km ? parseInt(formData.next_service_km) : null,
         next_service_date: formData.next_service_date || null,
@@ -157,14 +159,24 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="next_service_date">Next Service Due (Date)</Label>
+                  <Label htmlFor="last_service_km">Last Service KM</Label>
                   <Input
-                    id="next_service_date"
-                    type="date"
-                    value={formData.next_service_date}
-                    onChange={(e) => handleInputChange('next_service_date', e.target.value)}
+                    id="last_service_km"
+                    type="number"
+                    placeholder="e.g., 40000"
+                    value={formData.last_service_km}
+                    onChange={(e) => handleInputChange('last_service_km', e.target.value)}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="next_service_date">Next Service Due (Date)</Label>
+                <Input
+                  id="next_service_date"
+                  type="date"
+                  value={formData.next_service_date}
+                  onChange={(e) => handleInputChange('next_service_date', e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>

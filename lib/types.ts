@@ -32,6 +32,7 @@ export interface Vehicle {
   insurance_end_date: string | null
   mulkiya_renewal_date: string | null
   last_service_date: string | null
+  last_service_km: number | null
   current_km: number | null
   next_service_km: number | null
   next_service_date: string | null

@@ -413,6 +413,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">Vehicle Status</th>
                   <th className="p-3 text-left text-sm font-medium">Insurance Expiry</th>
                   <th className="p-3 text-left text-sm font-medium">Mulkiya Renewal</th>
+                  <th className="p-3 text-left text-sm font-medium">Last Service KM</th>
                   <th className="p-3 text-left text-sm font-medium">Current KM</th>
                   <th className="p-3 text-left text-sm font-medium">Next Service</th>
                   <th className="p-3 text-left text-sm font-medium">Alert Status</th>
@@ -485,6 +486,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               <div className="text-xs">({mulkiyaDays} days)</div>
                             )}
                           </div>
+                        ) : (
+                          <span className="text-muted-foreground">Not set</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {vehicle.last_service_km ? (
+                          <span>{vehicle.last_service_km.toLocaleString()} km</span>
                         ) : (
                           <span className="text-muted-foreground">Not set</span>
                         )}
