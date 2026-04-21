@@ -27,8 +27,28 @@ export interface Vehicle {
   location_id: string | null
   created_at: string
   updated_at: string
+  // Tracking fields
+  insurance_start_date: string | null
+  insurance_end_date: string | null
+  mulkiya_renewal_date: string | null
+  last_service_date: string | null
+  current_km: number | null
+  next_service_km: number | null
+  next_service_date: string | null
   category?: VehicleCategory
   location?: Location
+}
+
+export interface VehicleAlert {
+  vehicleId: string
+  licensePlate: string
+  make: string
+  model: string
+  type: 'insurance' | 'mulkiya' | 'service_km' | 'service_date'
+  severity: 'critical' | 'warning' | 'info'
+  message: string
+  daysRemaining?: number
+  kmRemaining?: number
 }
 
 export interface VehicleBooking {

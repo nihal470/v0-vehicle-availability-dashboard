@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Dashboard } from '@/components/fleet/dashboard'
 import type { CategoryWithVehicles, FleetStats, Location, VehicleCategory, Vehicle, VehicleBooking } from '@/lib/types'
-import { Truck, Calendar, LogIn } from 'lucide-react'
+import { Truck, Calendar, LogIn, Gauge } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
@@ -70,6 +70,16 @@ export default async function FleetPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              asChild
+              variant="secondary"
+              className="bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80"
+            >
+              <Link href="/vehicles">
+                <Gauge className="mr-2 h-4 w-4" />
+                Vehicle Tracking
+              </Link>
+            </Button>
             <Button
               asChild
               variant="secondary"
