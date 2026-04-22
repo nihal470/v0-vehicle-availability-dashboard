@@ -163,17 +163,17 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
                 <div className="p-8 text-center text-muted-foreground">
                   No vehicles found matching "{searchQuery}"
                 </div>
-              ) : filteredVehicles.map((vehicle) => (
-                <div 
+              ) : filteredVehicles.map((vehicle) => {
+                const isSelected = selectedVehicles.includes(vehicle.id)
+                return (
+                <label 
                   key={vehicle.id} 
                   className={`flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-muted/30 cursor-pointer ${
-                    selectedVehicles.includes(vehicle.id) ? 'bg-primary/5' : ''
+                    isSelected ? 'bg-primary/5' : ''
                   }`}
-                  onClick={() => handleSelectVehicle(vehicle.id)}
                 >
                   <Checkbox
-                    checked={selectedVehicles.includes(vehicle.id)}
-                    onClick={(e) => e.stopPropagation()}
+                    checked={isSelected}
                     onCheckedChange={() => handleSelectVehicle(vehicle.id)}
                   />
                   <div className="flex-1 grid grid-cols-3 gap-4">
@@ -195,8 +195,8 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
                       <p className="text-sm capitalize">{vehicle.status}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                </label>
+              )})}
             </div>
           </div>
 
