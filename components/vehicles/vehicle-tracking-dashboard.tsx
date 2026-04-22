@@ -562,6 +562,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           onOpenChange={setShowModal}
         />
       )}
+
+      {/* Add Vehicle Modal */}
+      <AddVehicleModal
+        categories={categories}
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+      />
     </div>
   )
 }
