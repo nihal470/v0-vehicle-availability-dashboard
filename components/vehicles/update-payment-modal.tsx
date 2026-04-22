@@ -38,7 +38,16 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
   })
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value }
+      
+      // Automatically update return_date when rental_renewal_date is changed
+      if (field === 'rental_renewal_date' && value) {
+        updated.return_date = value
+      }
+      
+      return updated
+    })
   }
 
   const handleUpdate = async () => {
@@ -99,18 +108,7 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
             </CardContent>
           </Card>
 
-          {/* Return Date */}
-          <div className="space-y-2">
-            <Label htmlFor="return_date">Return Date</Label>
-            <Input
-              id="return_date"
-              type="date"
-              value={formData.return_date}
-              onChange={(e) => handleInputChange('return_date', e.target.value)}
-            />
-          </div>
-
-          {/* Renewal Date */}
+          {/* Renewal Date - Primary field that auto-updates return date */}
           <div className="space-y-2">
             <Label htmlFor="rental_renewal_date" className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
@@ -121,6 +119,19 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
               type="date"
               value={formData.rental_renewal_date}
               onChange={(e) => handleInputChange('rental_renewal_date', e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Return date will be updated automatically</p>
+          </div>
+
+          {/* Return Date - Auto-synced with renewal date */}
+          <div className="space-y-2">
+            <Label htmlFor="return_date">Return Date</Label>
+            <Input
+              id="return_date"
+              type="date"
+              value={formData.return_date}
+              onChange={(e) => handleInputChange('return_date', e.target.value)}
+              className="bg-muted/30"
             />
           </div>
 
