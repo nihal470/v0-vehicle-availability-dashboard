@@ -146,7 +146,7 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
               <Checkbox
                 id="select-all"
                 checked={filteredVehicles.length > 0 && filteredVehicles.every(v => selectedVehicles.includes(v.id))}
-                onCheckedChange={handleSelectAll}
+                onCheckedChange={() => handleSelectAll()}
               />
               <Label htmlFor="select-all" className="font-medium cursor-pointer">
                 {searchQuery ? (
@@ -173,6 +173,7 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
                 >
                   <Checkbox
                     checked={selectedVehicles.includes(vehicle.id)}
+                    onClick={(e) => e.stopPropagation()}
                     onCheckedChange={() => handleSelectVehicle(vehicle.id)}
                   />
                   <div className="flex-1 grid grid-cols-3 gap-4">

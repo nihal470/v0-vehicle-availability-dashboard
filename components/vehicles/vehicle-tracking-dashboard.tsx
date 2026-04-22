@@ -729,11 +729,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       )}
 
       {/* Bulk Update Modal */}
-      <BulkUpdateModal
-        vehicles={vehicles}
-        open={showBulkUpdateModal}
-        onOpenChange={setShowBulkUpdateModal}
-      />
+      {showBulkUpdateModal && (
+        <BulkUpdateModal
+          vehicles={vehicles}
+          open={showBulkUpdateModal}
+          onOpenChange={setShowBulkUpdateModal}
+        />
+      )}
     </div>
   )
 }
