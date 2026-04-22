@@ -23,7 +23,8 @@ import {
   Plus,
   XCircle,
   ArrowRightLeft,
-  CreditCard
+  CreditCard,
+  ListChecks
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
@@ -31,6 +32,7 @@ import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
+import { BulkUpdateModal } from './bulk-update-modal'
 import { differenceInDays, format } from 'date-fns'
 
 interface Props {
@@ -177,6 +179,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
 
   const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
@@ -420,10 +423,16 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Vehicle Details & Tracking</CardTitle>
-          <Button onClick={() => setShowAddModal(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Vehicle
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowBulkUpdateModal(true)}>
+              <ListChecks className="mr-2 h-4 w-4" />
+              Bulk Mulkiya Update
+            </Button>
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Vehicle
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -718,6 +727,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           onOpenChange={setShowPaymentModal}
         />
       )}
+
+      {/* Bulk Update Modal */}
+      <BulkUpdateModal
+        vehicles={vehicles}
+        open={showBulkUpdateModal}
+        onOpenChange={setShowBulkUpdateModal}
+      />
     </div>
   )
 }
