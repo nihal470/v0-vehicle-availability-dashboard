@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Shield, FileText, Wrench, Gauge, Loader2 } from 'lucide-react'
+import { Shield, FileText, Wrench, Gauge, Loader2, Car } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface Props {
@@ -27,6 +27,9 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
+    make: vehicle.make || '',
+    model: vehicle.model || '',
+    license_plate: vehicle.license_plate || '',
     insurance_start_date: vehicle.insurance_start_date || '',
     insurance_end_date: vehicle.insurance_end_date || '',
     mulkiya_renewal_date: vehicle.mulkiya_renewal_date || '',
@@ -46,6 +49,9 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
     const { error } = await supabase
       .from('vehicles')
       .update({
+        make: formData.make,
+        model: formData.model,
+        license_plate: formData.license_plate,
         insurance_start_date: formData.insurance_start_date || null,
         insurance_end_date: formData.insurance_end_date || null,
         mulkiya_renewal_date: formData.mulkiya_renewal_date || null,
@@ -88,6 +94,51 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Vehicle Information Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Car className="h-4 w-4 text-primary" />
+                Vehicle Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="make">Make</Label>
+                <Input
+                  id="make"
+                  type="text"
+                  placeholder="e.g., Honda"
+                  value={formData.make}
+                  onChange={(e) => handleInputChange('make', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="model">Model</Label>
+                <Input
+                  id="model"
+                  type="text"
+                  placeholder="e.g., City"
+                  value={formData.model}
+                  onChange={(e) => handleInputChange('model', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="license_plate">License Plate</Label>
+                <Input
+                  id="license_plate"
+                  type="text"
+                  placeholder="e.g., 1234 AB"
+                  value={formData.license_plate}
+                  onChange={(e) => handleInputChange('license_plate', e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Insurance Section */}
           <Card>
             <CardHeader className="pb-3">
