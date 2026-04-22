@@ -428,6 +428,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                 <tr className="border-b bg-muted/50">
                   <th className="p-3 text-left text-sm font-medium">Vehicle</th>
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
+                  <th className="p-3 text-left text-sm font-medium">Own/Lease</th>
                   <th className="p-3 text-left text-sm font-medium">Status</th>
                   <th className="p-3 text-left text-sm font-medium">Customer Name</th>
                   <th className="p-3 text-left text-sm font-medium">Return Date</th>
@@ -463,6 +464,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         <div className="text-sm text-muted-foreground">{vehicle.category?.name}</div>
                       </td>
                       <td className="p-3 font-mono">{vehicle.license_plate}</td>
+                      <td className="p-3">
+                        <Badge variant="outline" className={
+                          vehicle.ownership_type === 'leased' 
+                            ? 'border-blue-500 text-blue-600 bg-blue-50' 
+                            : 'border-emerald-500 text-emerald-600 bg-emerald-50'
+                        }>
+                          {vehicle.ownership_type === 'leased' ? 'Leased' : 'Owned'}
+                        </Badge>
+                      </td>
                       <td className="p-3">
                         <Badge className={
                           vehicle.status === 'running' ? 'bg-emerald-500 hover:bg-emerald-600' :

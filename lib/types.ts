@@ -41,6 +41,8 @@ export interface Vehicle {
   return_date: string | null
   ag_no: string | null
   rental_type: 'daily' | 'monthly' | null
+  // Ownership
+  ownership_type: 'owned' | 'leased' | null
   category?: VehicleCategory
   location?: Location
 }

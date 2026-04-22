@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Shield, FileText, Wrench, Gauge, Loader2, Car } from 'lucide-react'
+import { Shield, FileText, Wrench, Gauge, Loader2, Car, Building2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 
 interface Props {
@@ -30,6 +31,7 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
     make: vehicle.make || '',
     model: vehicle.model || '',
     license_plate: vehicle.license_plate || '',
+    ownership_type: vehicle.ownership_type || 'owned',
     insurance_start_date: vehicle.insurance_start_date || '',
     insurance_end_date: vehicle.insurance_end_date || '',
     mulkiya_renewal_date: vehicle.mulkiya_renewal_date || '',
@@ -52,6 +54,7 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
         make: formData.make,
         model: formData.model,
         license_plate: formData.license_plate,
+        ownership_type: formData.ownership_type,
         insurance_start_date: formData.insurance_start_date || null,
         insurance_end_date: formData.insurance_end_date || null,
         mulkiya_renewal_date: formData.mulkiya_renewal_date || null,
@@ -102,39 +105,66 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
                 Vehicle Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="make">Make</Label>
-                <Input
-                  id="make"
-                  type="text"
-                  placeholder="e.g., Honda"
-                  value={formData.make}
-                  onChange={(e) => handleInputChange('make', e.target.value)}
-                  required
-                />
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="make">Make</Label>
+                  <Input
+                    id="make"
+                    type="text"
+                    placeholder="e.g., Honda"
+                    value={formData.make}
+                    onChange={(e) => handleInputChange('make', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="model">Model</Label>
+                  <Input
+                    id="model"
+                    type="text"
+                    placeholder="e.g., City"
+                    value={formData.model}
+                    onChange={(e) => handleInputChange('model', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="license_plate">License Plate</Label>
+                  <Input
+                    id="license_plate"
+                    type="text"
+                    placeholder="e.g., 1234 AB"
+                    value={formData.license_plate}
+                    onChange={(e) => handleInputChange('license_plate', e.target.value)}
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="model">Model</Label>
-                <Input
-                  id="model"
-                  type="text"
-                  placeholder="e.g., City"
-                  value={formData.model}
-                  onChange={(e) => handleInputChange('model', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="license_plate">License Plate</Label>
-                <Input
-                  id="license_plate"
-                  type="text"
-                  placeholder="e.g., 1234 AB"
-                  value={formData.license_plate}
-                  onChange={(e) => handleInputChange('license_plate', e.target.value)}
-                  required
-                />
+                <Label htmlFor="ownership_type">Ownership Type</Label>
+                <Select 
+                  value={formData.ownership_type} 
+                  onValueChange={(value) => handleInputChange('ownership_type', value)}
+                >
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="Select ownership" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owned">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-emerald-600" />
+                        Owned
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="leased">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        Leased
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

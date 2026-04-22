@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Car, Shield, FileText, Wrench, Gauge, Loader2, Plus } from 'lucide-react'
+import { Car, Shield, FileText, Wrench, Gauge, Loader2, Plus, Building2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface Props {
@@ -43,6 +43,7 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
     color: '',
     category_id: '',
     status: 'idle' as VehicleStatus,
+    ownership_type: 'owned' as 'owned' | 'leased',
     insurance_start_date: '',
     insurance_end_date: '',
     mulkiya_renewal_date: '',
@@ -75,6 +76,7 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
         color: formData.color || null,
         category_id: formData.category_id || null,
         status: formData.status,
+        ownership_type: formData.ownership_type,
         insurance_start_date: formData.insurance_start_date || null,
         insurance_end_date: formData.insurance_end_date || null,
         mulkiya_renewal_date: formData.mulkiya_renewal_date || null,
@@ -99,6 +101,7 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
         color: '',
         category_id: '',
         status: 'idle',
+        ownership_type: 'owned',
         insurance_start_date: '',
         insurance_end_date: '',
         mulkiya_renewal_date: '',
@@ -181,7 +184,7 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
                   />
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="color">Color</Label>
                   <Input
@@ -209,6 +212,8 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select 
@@ -224,6 +229,31 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
                           {option.label}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ownership_type">Ownership Type</Label>
+                  <Select 
+                    value={formData.ownership_type} 
+                    onValueChange={(value) => handleInputChange('ownership_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select ownership" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owned">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-emerald-600" />
+                          Owned
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="leased">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          Leased
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
