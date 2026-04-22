@@ -417,12 +417,14 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                 <tr className="border-b bg-muted/50">
                   <th className="p-3 text-left text-sm font-medium">Vehicle</th>
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
-                  <th className="p-3 text-left text-sm font-medium">Vehicle Status</th>
+                  <th className="p-3 text-left text-sm font-medium">Status</th>
+                  <th className="p-3 text-left text-sm font-medium">Customer Name</th>
+                  <th className="p-3 text-left text-sm font-medium">Return Date</th>
+                  <th className="p-3 text-left text-sm font-medium">AG No</th>
+                  <th className="p-3 text-left text-sm font-medium">Rental</th>
                   <th className="p-3 text-left text-sm font-medium">Insurance Expiry</th>
                   <th className="p-3 text-left text-sm font-medium">Mulkiya Renewal</th>
-                  <th className="p-3 text-left text-sm font-medium">Last Service KM</th>
                   <th className="p-3 text-left text-sm font-medium">Current KM</th>
-                  <th className="p-3 text-left text-sm font-medium">Next Service</th>
                   <th className="p-3 text-left text-sm font-medium">Alert Status</th>
                   <th className="p-3 text-left text-sm font-medium">Actions</th>
                 </tr>
@@ -468,6 +470,30 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         </Badge>
                       </td>
                       <td className="p-3">
+                        {vehicle.customer_name ? (
+                          <span className="font-medium">{vehicle.customer_name}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {vehicle.return_date ? (
+                          <span>{format(new Date(vehicle.return_date), 'dd-MMM-yy')}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-3 font-mono">
+                        {vehicle.ag_no || <span className="text-muted-foreground">-</span>}
+                      </td>
+                      <td className="p-3">
+                        {vehicle.rental_type ? (
+                          <Badge variant="outline" className="uppercase">{vehicle.rental_type}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-3">
                         {vehicle.insurance_end_date ? (
                           <div className={insuranceDays !== null && insuranceDays <= 30 
                             ? insuranceDays <= 7 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
@@ -498,31 +524,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         )}
                       </td>
                       <td className="p-3">
-                        {vehicle.last_service_km ? (
-                          <span>{vehicle.last_service_km.toLocaleString()} km</span>
-                        ) : (
-                          <span className="text-muted-foreground">Not set</span>
-                        )}
-                      </td>
-                      <td className="p-3">
                         {vehicle.current_km?.toLocaleString() ?? '-'} km
-                      </td>
-                      <td className="p-3">
-                        {vehicle.next_service_km ? (
-                          <div className={kmRemaining !== null && kmRemaining <= 1000 
-                            ? kmRemaining <= 500 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
-                            : ''
-                          }>
-                            {vehicle.next_service_km.toLocaleString()} km
-                            {kmRemaining !== null && (
-                              <div className="text-xs">
-                                ({kmRemaining > 0 ? `${kmRemaining.toLocaleString()} km left` : `${Math.abs(kmRemaining).toLocaleString()} km overdue`})
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Not set</span>
-                        )}
                       </td>
                       <td className="p-3">
                         {hasCritical ? (

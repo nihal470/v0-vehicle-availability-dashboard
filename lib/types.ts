@@ -36,6 +36,11 @@ export interface Vehicle {
   current_km: number | null
   next_service_km: number | null
   next_service_date: string | null
+  // Rental fields
+  customer_name: string | null
+  return_date: string | null
+  ag_no: string | null
+  rental_type: 'daily' | 'monthly' | null
   category?: VehicleCategory
   location?: Location
 }
