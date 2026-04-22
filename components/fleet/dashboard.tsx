@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { StatsCards } from './stats-cards'
 import { FilterBar } from './filter-bar'
 import { AvailabilityCalendar } from './availability-calendar'
-import { UpcomingReturns } from './upcoming-returns'
+import { ReturnsSummary } from './returns-summary'
 import type { CategoryWithVehicles, Location, VehicleCategory, FleetStats } from '@/lib/types'
 
 interface DashboardProps {
@@ -65,8 +65,8 @@ export function Dashboard({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Upcoming Returns Section */}
-      <UpcomingReturns />
+      {/* Upcoming Returns Summary */}
+      <ReturnsSummary />
       
       <StatsCards 
         stats={stats} 
