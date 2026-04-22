@@ -21,12 +21,14 @@ import {
   PlayCircle,
   CircleDot,
   Plus,
-  XCircle
+  XCircle,
+  ArrowRightLeft
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
+import { MoveVehicleModal } from './move-vehicle-modal'
 import { differenceInDays, format } from 'date-fns'
 
 interface Props {
@@ -169,6 +171,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToClose, setVehicleToClose] = useState<Vehicle | null>(null)
   const [showStartModal, setShowStartModal] = useState(false)
   const [vehicleToStart, setVehicleToStart] = useState<Vehicle | null>(null)
+  const [showMoveModal, setShowMoveModal] = useState(false)
+  const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
   const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
@@ -582,6 +586,21 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               Close
                             </Button>
                           )}
+                          {/* Move button - available for idle, available, garage, maintenance */}
+                          {!vehicle.customer_name && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-slate-600 border-slate-400 hover:bg-slate-50"
+                              onClick={() => {
+                                setVehicleToMove(vehicle)
+                                setShowMoveModal(true)
+                              }}
+                            >
+                              <ArrowRightLeft className="h-4 w-4 mr-1" />
+                              Move
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -624,6 +643,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToStart}
           open={showStartModal}
           onOpenChange={setShowStartModal}
+        />
+      )}
+
+      {/* Move Vehicle Modal */}
+      {vehicleToMove && (
+        <MoveVehicleModal
+          vehicle={vehicleToMove}
+          open={showMoveModal}
+          onOpenChange={setShowMoveModal}
         />
       )}
     </div>
