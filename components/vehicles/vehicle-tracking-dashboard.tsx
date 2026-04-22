@@ -20,10 +20,12 @@ import {
   Warehouse,
   PlayCircle,
   CircleDot,
-  Plus
+  Plus,
+  XCircle
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
+import { CloseAgreementModal } from './close-agreement-modal'
 import { differenceInDays, format } from 'date-fns'
 
 interface Props {
@@ -162,6 +164,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showCloseModal, setShowCloseModal] = useState(false)
+  const [vehicleToClose, setVehicleToClose] = useState<Vehicle | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
   const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
@@ -536,16 +540,32 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         )}
                       </td>
                       <td className="p-3">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedVehicle(vehicle)
-                            setShowModal(true)
-                          }}
-                        >
-                          Edit Details
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedVehicle(vehicle)
+                              setShowModal(true)
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          {vehicle.status === 'running' && vehicle.customer_name && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-green-600 border-green-600 hover:bg-green-50"
+                              onClick={() => {
+                                setVehicleToClose(vehicle)
+                                setShowCloseModal(true)
+                              }}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Close
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -571,6 +591,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
         open={showAddModal}
         onOpenChange={setShowAddModal}
       />
+
+      {/* Close Agreement Modal */}
+      {vehicleToClose && (
+        <CloseAgreementModal
+          vehicle={vehicleToClose}
+          open={showCloseModal}
+          onOpenChange={setShowCloseModal}
+        />
+      )}
     </div>
   )
 }
