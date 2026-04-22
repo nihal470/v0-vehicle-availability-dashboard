@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { FileText, Loader2, CheckSquare, Square } from 'lucide-react'
+import { FileText, Loader2, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
@@ -31,12 +31,29 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
   const [isLoading, setIsLoading] = useState(false)
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([])
   const [mulkiyaDate, setMulkiyaDate] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Filter vehicles based on search query
+  const filteredVehicles = vehicles.filter(vehicle => {
+    const query = searchQuery.toLowerCase()
+    return (
+      vehicle.make?.toLowerCase().includes(query) ||
+      vehicle.model?.toLowerCase().includes(query) ||
+      vehicle.license_plate?.toLowerCase().includes(query) ||
+      vehicle.customer_name?.toLowerCase().includes(query)
+    )
+  })
 
   const handleSelectAll = () => {
-    if (selectedVehicles.length === vehicles.length) {
-      setSelectedVehicles([])
+    const filteredIds = filteredVehicles.map(v => v.id)
+    const allFilteredSelected = filteredIds.every(id => selectedVehicles.includes(id))
+    
+    if (allFilteredSelected) {
+      // Deselect all filtered vehicles
+      setSelectedVehicles(prev => prev.filter(id => !filteredIds.includes(id)))
     } else {
-      setSelectedVehicles(vehicles.map(v => v.id))
+      // Select all filtered vehicles
+      setSelectedVehicles(prev => [...new Set([...prev, ...filteredIds])])
     }
   }
 
@@ -72,6 +89,7 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
       onOpenChange(false)
       setSelectedVehicles([])
       setMulkiyaDate('')
+      setSearchQuery('')
     } catch (error) {
       console.error('Failed to update vehicles:', error)
     } finally {
@@ -110,21 +128,42 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
 
           {/* Vehicle Selection */}
           <div className="flex-1 overflow-hidden border rounded-lg">
+            {/* Search Box */}
+            <div className="p-3 border-b bg-background">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by make, model, plate, or customer..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
             {/* Select All Header */}
             <div className="flex items-center gap-3 p-3 bg-muted/50 border-b sticky top-0">
               <Checkbox
                 id="select-all"
-                checked={selectedVehicles.length === vehicles.length && vehicles.length > 0}
+                checked={filteredVehicles.length > 0 && filteredVehicles.every(v => selectedVehicles.includes(v.id))}
                 onCheckedChange={handleSelectAll}
               />
               <Label htmlFor="select-all" className="font-medium cursor-pointer">
-                Select All ({selectedVehicles.length}/{vehicles.length} selected)
+                {searchQuery ? (
+                  <>Select All Filtered ({filteredVehicles.filter(v => selectedVehicles.includes(v.id)).length}/{filteredVehicles.length})</>
+                ) : (
+                  <>Select All ({selectedVehicles.length}/{vehicles.length} selected)</>
+                )}
               </Label>
             </div>
 
             {/* Vehicle List */}
             <div className="overflow-y-auto max-h-[300px]">
-              {vehicles.map((vehicle) => (
+              {filteredVehicles.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  No vehicles found matching "{searchQuery}"
+                </div>
+              ) : filteredVehicles.map((vehicle) => (
                 <div 
                   key={vehicle.id} 
                   className={`flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-muted/30 cursor-pointer ${
@@ -159,6 +198,13 @@ export function BulkUpdateModal({ vehicles, open, onOpenChange }: BulkUpdateModa
               ))}
             </div>
           </div>
+
+          {/* Selected count indicator */}
+          {selectedVehicles.length > 0 && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {selectedVehicles.length} vehicle{selectedVehicles.length !== 1 ? 's' : ''} selected for update
+            </div>
+          )}
 
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
