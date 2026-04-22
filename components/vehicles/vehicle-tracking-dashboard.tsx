@@ -22,13 +22,15 @@ import {
   CircleDot,
   Plus,
   XCircle,
-  ArrowRightLeft
+  ArrowRightLeft,
+  CreditCard
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
+import { UpdatePaymentModal } from './update-payment-modal'
 import { differenceInDays, format } from 'date-fns'
 
 interface Props {
@@ -173,6 +175,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToStart, setVehicleToStart] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
   const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
@@ -434,6 +438,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">Return Date</th>
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
+                  <th className="p-3 text-left text-sm font-medium">Renewal Date</th>
+                  <th className="p-3 text-left text-sm font-medium">Payment</th>
                   <th className="p-3 text-left text-sm font-medium">Insurance Expiry</th>
                   <th className="p-3 text-left text-sm font-medium">Mulkiya Renewal</th>
                   <th className="p-3 text-left text-sm font-medium">Current KM</th>
@@ -515,6 +521,31 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         )}
                       </td>
                       <td className="p-3">
+                        {vehicle.rental_renewal_date ? (
+                          <span>{format(new Date(vehicle.rental_renewal_date), 'dd-MMM-yy')}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {vehicle.payment_status ? (
+                          <Badge className={
+                            vehicle.payment_status === 'paid' 
+                              ? 'bg-emerald-500 hover:bg-emerald-600' 
+                              : 'bg-red-500 hover:bg-red-600'
+                          }>
+                            {vehicle.payment_status === 'paid' ? 'Paid' : 'Not Paid'}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                        {vehicle.payment_date && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {format(new Date(vehicle.payment_date), 'dd-MMM-yy')}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3">
                         {vehicle.insurance_end_date ? (
                           <div className={insuranceDays !== null && insuranceDays <= 30 
                             ? insuranceDays <= 7 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
@@ -583,18 +614,32 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                             </Button>
                           )}
                           {vehicle.status === 'running' && vehicle.customer_name && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-amber-600 border-amber-600 hover:bg-amber-50"
-                              onClick={() => {
-                                setVehicleToClose(vehicle)
-                                setShowCloseModal(true)
-                              }}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Close
-                            </Button>
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                                onClick={() => {
+                                  setVehicleForPayment(vehicle)
+                                  setShowPaymentModal(true)
+                                }}
+                              >
+                                <CreditCard className="h-4 w-4 mr-1" />
+                                Renew
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-amber-600 border-amber-600 hover:bg-amber-50"
+                                onClick={() => {
+                                  setVehicleToClose(vehicle)
+                                  setShowCloseModal(true)
+                                }}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Close
+                              </Button>
+                            </>
                           )}
                           {/* Move button - available for idle, available, garage, maintenance */}
                           {!vehicle.customer_name && (
@@ -662,6 +707,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToMove}
           open={showMoveModal}
           onOpenChange={setShowMoveModal}
+        />
+      )}
+
+      {/* Update Payment Modal */}
+      {vehicleForPayment && (
+        <UpdatePaymentModal
+          vehicle={vehicleForPayment}
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
         />
       )}
     </div>

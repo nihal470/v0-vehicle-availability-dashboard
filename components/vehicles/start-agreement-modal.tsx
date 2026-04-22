@@ -35,6 +35,9 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
     return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     ag_no: '',
     rental_type: 'monthly' as 'daily' | 'monthly',
+    rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    payment_status: 'not_paid' as 'paid' | 'not_paid',
+    payment_date: '',
     current_km: vehicle.current_km?.toString() || '',
   })
 
@@ -58,6 +61,9 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
           return_date: formData.return_date || null,
           ag_no: formData.ag_no.trim() || null,
           rental_type: formData.rental_type,
+          rental_renewal_date: formData.rental_renewal_date || null,
+          payment_status: formData.payment_status,
+          payment_date: formData.payment_date || null,
           current_km: formData.current_km ? parseInt(formData.current_km) : vehicle.current_km,
           updated_at: new Date().toISOString(),
         })
@@ -137,21 +143,64 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
             />
           </div>
 
-          {/* Rental Type */}
-          <div className="space-y-2">
-            <Label htmlFor="rental_type">Rental Type</Label>
-            <Select 
-              value={formData.rental_type} 
-              onValueChange={(value) => handleInputChange('rental_type', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select rental type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Rental Type & Renewal Date */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="rental_type">Rental Type</Label>
+              <Select 
+                value={formData.rental_type} 
+                onValueChange={(value) => handleInputChange('rental_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select rental type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rental_renewal_date">Renewal Date</Label>
+              <Input
+                id="rental_renewal_date"
+                type="date"
+                value={formData.rental_renewal_date}
+                onChange={(e) => handleInputChange('rental_renewal_date', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Payment Status & Date */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="payment_status">Payment Status</Label>
+              <Select 
+                value={formData.payment_status} 
+                onValueChange={(value) => handleInputChange('payment_status', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="paid">
+                    <span className="text-emerald-600 font-medium">Paid</span>
+                  </SelectItem>
+                  <SelectItem value="not_paid">
+                    <span className="text-red-600 font-medium">Not Paid</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="payment_date">Payment Date</Label>
+              <Input
+                id="payment_date"
+                type="date"
+                value={formData.payment_date}
+                onChange={(e) => handleInputChange('payment_date', e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Current KM */}
