@@ -26,6 +26,7 @@ import {
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
+import { StartAgreementModal } from './start-agreement-modal'
 import { differenceInDays, format } from 'date-fns'
 
 interface Props {
@@ -166,6 +167,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [showCloseModal, setShowCloseModal] = useState(false)
   const [vehicleToClose, setVehicleToClose] = useState<Vehicle | null>(null)
+  const [showStartModal, setShowStartModal] = useState(false)
+  const [vehicleToStart, setVehicleToStart] = useState<Vehicle | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
   const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
@@ -551,11 +554,25 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           >
                             Edit
                           </Button>
+                          {vehicle.status === 'idle' && !vehicle.customer_name && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                              onClick={() => {
+                                setVehicleToStart(vehicle)
+                                setShowStartModal(true)
+                              }}
+                            >
+                              <PlayCircle className="h-4 w-4 mr-1" />
+                              Start
+                            </Button>
+                          )}
                           {vehicle.status === 'running' && vehicle.customer_name && (
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="text-green-600 border-green-600 hover:bg-green-50"
+                              className="text-amber-600 border-amber-600 hover:bg-amber-50"
                               onClick={() => {
                                 setVehicleToClose(vehicle)
                                 setShowCloseModal(true)
@@ -598,6 +615,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToClose}
           open={showCloseModal}
           onOpenChange={setShowCloseModal}
+        />
+      )}
+
+      {/* Start Agreement Modal */}
+      {vehicleToStart && (
+        <StartAgreementModal
+          vehicle={vehicleToStart}
+          open={showStartModal}
+          onOpenChange={setShowStartModal}
         />
       )}
     </div>
