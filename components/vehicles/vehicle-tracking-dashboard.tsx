@@ -19,9 +19,11 @@ import {
   PauseCircle,
   Warehouse,
   PlayCircle,
-  CircleDot
+  CircleDot,
+  Plus
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
+import { AddVehicleModal } from './add-vehicle-modal'
 import { differenceInDays, format } from 'date-fns'
 
 interface Props {
@@ -160,6 +162,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
   
@@ -400,8 +403,12 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
 
       {/* Vehicle List */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Vehicle Details & Tracking</CardTitle>
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Vehicle
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
