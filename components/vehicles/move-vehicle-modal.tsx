@@ -57,8 +57,8 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
     },
     {
       value: 'available',
-      label: 'Available',
-      description: 'Vehicle is ready for rental',
+      label: 'Reserved',
+      description: 'Reserved for upcoming bookings',
       icon: CheckCircle2,
       color: 'text-sky-600',
     },
