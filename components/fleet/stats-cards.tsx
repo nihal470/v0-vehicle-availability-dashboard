@@ -53,7 +53,7 @@ export function StatsCards({ stats, selectedStatus, onStatusChange }: StatsCards
       status: 'garage',
     },
     {
-      label: 'Available',
+      label: 'Reserved',
       value: stats.available,
       icon: CheckCircle,
       color: 'bg-sky-100 text-sky-700',

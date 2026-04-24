@@ -25,7 +25,7 @@ interface Props {
 }
 
 const statusOptions: { value: VehicleStatus; label: string }[] = [
-  { value: 'available', label: 'Available' },
+  { value: 'available', label: 'Reserved' },
   { value: 'running', label: 'Running' },
   { value: 'idle', label: 'Idle' },
   { value: 'garage', label: 'In Garage' },

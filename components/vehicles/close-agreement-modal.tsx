@@ -154,7 +154,7 @@ export function CloseAgreementModal({ vehicle, open, onOpenChange }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="idle">Idle - Ready for next rental</SelectItem>
-                <SelectItem value="available">Available - Ready for booking</SelectItem>
+                <SelectItem value="available">Reserved - For upcoming booking</SelectItem>
                 <SelectItem value="maintenance">Maintenance - Needs service</SelectItem>
                 <SelectItem value="garage">Garage - In storage</SelectItem>
               </SelectContent>
