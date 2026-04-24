@@ -333,7 +333,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
             >
               <CheckCircle2 className="h-6 w-6" />
               <span className="text-lg font-bold">{statusCounts.available}</span>
-              <span className="text-xs">Available</span>
+              <span className="text-xs">Reserved</span>
             </Button>
             
             <Button
