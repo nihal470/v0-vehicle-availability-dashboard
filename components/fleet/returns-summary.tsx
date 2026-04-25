@@ -14,7 +14,8 @@ import {
   CalendarClock, 
   Car, 
   ArrowRight,
-  RefreshCw
+  RefreshCw,
+  User
 } from 'lucide-react'
 
 interface ReturnSchedule {
@@ -100,100 +101,187 @@ export function ReturnsSummary() {
   const getStatusBadge = (status: ReturnSchedule['status']) => {
     switch (status) {
       case 'overdue':
-        return <Badge className="bg-red-500 hover:bg-red-600 animate-pulse text-xs">OVERDUE</Badge>
+        return (
+          <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm animate-pulse text-xs px-2">
+            OVERDUE
+          </Badge>
+        )
       case 'due-today':
-        return <Badge className="bg-amber-500 hover:bg-amber-600 text-xs">TODAY</Badge>
+        return (
+          <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-sm text-xs px-2">
+            TODAY
+          </Badge>
+        )
       case 'due-tomorrow':
-        return <Badge className="bg-orange-500 hover:bg-orange-600 text-xs">TOMORROW</Badge>
+        return (
+          <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-sm text-xs px-2">
+            TOMORROW
+          </Badge>
+        )
       case 'due-soon':
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-xs">SOON</Badge>
+        return (
+          <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm text-xs px-2">
+            SOON
+          </Badge>
+        )
       default:
-        return <Badge variant="outline" className="text-xs">UPCOMING</Badge>
+        return (
+          <Badge variant="outline" className="text-xs px-2">
+            UPCOMING
+          </Badge>
+        )
     }
   }
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <CalendarClock className="h-5 w-5 text-primary" />
-          Upcoming Returns
-        </CardTitle>
-        <Button 
-          onClick={() => router.push('/returns')}
-          className="gap-2"
-        >
-          View All
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+    <Card className="border-2 shadow-sm overflow-hidden">
+      <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-white pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-3 text-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-white shadow-sm">
+              <CalendarClock className="h-5 w-5" />
+            </div>
+            <div>
+              <span>Upcoming Returns</span>
+              <p className="text-sm font-normal text-muted-foreground">Real-time return schedule monitoring</p>
+            </div>
+          </CardTitle>
+          <Button 
+            onClick={() => router.push('/returns')}
+            className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="p-4">
         {/* Quick Stats Row */}
-        <div className="flex gap-4 mb-4">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${overdueCount > 0 ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground'}`}>
-            <AlertTriangle className="h-4 w-4" />
-            <span className="font-semibold">{overdueCount}</span>
-            <span className="text-sm">Overdue</span>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+            overdueCount > 0 
+              ? 'bg-gradient-to-r from-red-50 to-red-100/50 border-2 border-red-200' 
+              : 'bg-slate-50 border border-slate-200'
+          }`}>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+              overdueCount > 0 ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-500'
+            }`}>
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className={`text-2xl font-bold ${overdueCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                {overdueCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Overdue</p>
+            </div>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${dueTodayCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'}`}>
-            <Clock className="h-4 w-4" />
-            <span className="font-semibold">{dueTodayCount}</span>
-            <span className="text-sm">Due Today</span>
+          
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+            dueTodayCount > 0 
+              ? 'bg-gradient-to-r from-amber-50 to-amber-100/50 border-2 border-amber-200' 
+              : 'bg-slate-50 border border-slate-200'
+          }`}>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+              dueTodayCount > 0 ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-500'
+            }`}>
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <p className={`text-2xl font-bold ${dueTodayCount > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {dueTodayCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Due Today</p>
+            </div>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${dueSoonCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-muted text-muted-foreground'}`}>
-            <CalendarClock className="h-4 w-4" />
-            <span className="font-semibold">{dueSoonCount}</span>
-            <span className="text-sm">Due Soon</span>
+          
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+            dueSoonCount > 0 
+              ? 'bg-gradient-to-r from-blue-50 to-blue-100/50 border-2 border-blue-200' 
+              : 'bg-slate-50 border border-slate-200'
+          }`}>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+              dueSoonCount > 0 ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-500'
+            }`}>
+              <CalendarClock className="h-5 w-5" />
+            </div>
+            <div>
+              <p className={`text-2xl font-bold ${dueSoonCount > 0 ? 'text-blue-600' : 'text-slate-400'}`}>
+                {dueSoonCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Due Soon</p>
+            </div>
           </div>
         </div>
 
         {/* Top 3 Urgent Returns */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-4">
-            <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : urgentReturns.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground">
-            <Car className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No scheduled returns</p>
+          <div className="text-center py-8 rounded-xl bg-slate-50 border border-dashed border-slate-200">
+            <Car className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+            <p className="text-sm font-medium text-slate-500">No scheduled returns</p>
+            <p className="text-xs text-slate-400">All vehicles are currently available</p>
           </div>
         ) : (
           <div className="space-y-2">
             {urgentReturns.map((schedule) => (
               <div
                 key={schedule.vehicle.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  schedule.status === 'overdue' ? 'border-red-300 bg-red-50' :
-                  schedule.status === 'due-today' ? 'border-amber-300 bg-amber-50' :
-                  schedule.status === 'due-tomorrow' ? 'border-orange-200 bg-orange-50' :
-                  'border-muted bg-muted/30'
+                className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all hover:shadow-sm ${
+                  schedule.status === 'overdue' 
+                    ? 'border-red-200 bg-gradient-to-r from-red-50 to-white' 
+                    : schedule.status === 'due-today' 
+                    ? 'border-amber-200 bg-gradient-to-r from-amber-50 to-white' 
+                    : schedule.status === 'due-tomorrow' 
+                    ? 'border-orange-200 bg-gradient-to-r from-orange-50 to-white' 
+                    : 'border-slate-200 bg-gradient-to-r from-slate-50 to-white'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Car className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                    schedule.status === 'overdue' ? 'bg-red-100 text-red-600' :
+                    schedule.status === 'due-today' ? 'bg-amber-100 text-amber-600' :
+                    'bg-slate-100 text-slate-600'
+                  }`}>
+                    <Car className="h-5 w-5" />
+                  </div>
                   <div>
-                    <p className="font-medium text-sm">
+                    <p className="font-semibold text-sm">
                       {schedule.vehicle.make} {schedule.vehicle.model}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {schedule.vehicle.license_plate} - {schedule.vehicle.customer_name}
-                    </p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-mono">{schedule.vehicle.license_plate}</span>
+                      <span className="text-slate-300">|</span>
+                      <User className="h-3 w-3" />
+                      <span>{schedule.vehicle.customer_name}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    {format(schedule.returnDate, 'dd MMM')}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{format(schedule.returnDate, 'dd MMM')}</p>
+                    <p className="text-xs text-muted-foreground">{format(schedule.returnDate, 'HH:mm')}</p>
+                  </div>
                   {getStatusBadge(schedule.status)}
                 </div>
               </div>
             ))}
             
             {schedules.length > 3 && (
-              <p className="text-center text-sm text-muted-foreground pt-2">
-                +{schedules.length - 3} more scheduled returns
-              </p>
+              <div className="text-center pt-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => router.push('/returns')}
+                  className="text-primary hover:text-primary"
+                >
+                  +{schedules.length - 3} more scheduled returns
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </div>
             )}
           </div>
         )}
