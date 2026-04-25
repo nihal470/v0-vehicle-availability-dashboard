@@ -76,6 +76,16 @@ export interface VehicleBooking {
   pickup_location_id: string | null
   dropoff_location_id: string | null
   notes: string | null
+  // Pickup details
+  pickup_location: string | null
+  pickup_time: string | null
+  pickup_date: string | null
+  pickup_notes: string | null
+  // Dropoff details
+  dropoff_location: string | null
+  dropoff_time: string | null
+  dropoff_date: string | null
+  dropoff_notes: string | null
   created_at: string
   updated_at: string
   vehicle?: Vehicle

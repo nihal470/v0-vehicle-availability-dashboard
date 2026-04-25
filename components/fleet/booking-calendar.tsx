@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { ChevronDown, ChevronUp, Car, ChevronLeft, ChevronRight, Plus, X, Calendar, User, Clock } from 'lucide-react'
+import { ChevronDown, ChevronUp, Car, ChevronLeft, ChevronRight, Plus, X, Calendar, User, Clock, MapPin, Pencil } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, isBefore, isAfter, addDays } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -130,7 +131,20 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
     customer_name: '',
     customer_phone: '',
     notes: '',
+    pickup_location: '',
+    pickup_time: '',
+    pickup_date: '',
+    pickup_notes: '',
+    dropoff_location: '',
+    dropoff_time: '',
+    dropoff_date: '',
+    dropoff_notes: '',
   })
+  
+  // Edit booking state
+  const [editingBooking, setEditingBooking] = useState<VehicleBooking | null>(null)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [editMode, setEditMode] = useState<'pickup' | 'dropoff'>('pickup')
   
   // Get days for current month and next month (60 days view for cross-month bookings)
   const days = useMemo(() => {
@@ -241,7 +255,7 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
     
     setIsCreating(true)
     try {
-      const { error } = await supabase.from('bookings').insert({
+      const { error } = await supabase.from('vehicle_bookings').insert({
         vehicle_id: selectedVehicle.id,
         start_date: format(selectedRange.start, 'yyyy-MM-dd'),
         end_date: format(selectedRange.end, 'yyyy-MM-dd'),
@@ -249,6 +263,14 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
         customer_name: bookingForm.customer_name || null,
         customer_phone: bookingForm.customer_phone || null,
         notes: bookingForm.notes || null,
+        pickup_location: bookingForm.pickup_location || null,
+        pickup_time: bookingForm.pickup_time || null,
+        pickup_date: bookingForm.pickup_date || null,
+        pickup_notes: bookingForm.pickup_notes || null,
+        dropoff_location: bookingForm.dropoff_location || null,
+        dropoff_time: bookingForm.dropoff_time || null,
+        dropoff_date: bookingForm.dropoff_date || null,
+        dropoff_notes: bookingForm.dropoff_notes || null,
       })
       
       if (error) throw error
@@ -264,11 +286,79 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
     }
   }
   
+  // Edit pickup/dropoff handler
+  const handleEditPickupDropoff = async () => {
+    if (!editingBooking) return
+    
+    setIsCreating(true)
+    try {
+      const updateData = editMode === 'pickup' 
+        ? {
+            pickup_location: bookingForm.pickup_location || null,
+            pickup_time: bookingForm.pickup_time || null,
+            pickup_date: bookingForm.pickup_date || null,
+            pickup_notes: bookingForm.pickup_notes || null,
+          }
+        : {
+            dropoff_location: bookingForm.dropoff_location || null,
+            dropoff_time: bookingForm.dropoff_time || null,
+            dropoff_date: bookingForm.dropoff_date || null,
+            dropoff_notes: bookingForm.dropoff_notes || null,
+          }
+      
+      const { error } = await supabase
+        .from('vehicle_bookings')
+        .update(updateData)
+        .eq('id', editingBooking.id)
+      
+      if (error) throw error
+      
+      setShowEditDialog(false)
+      setEditingBooking(null)
+      router.refresh()
+    } catch (error) {
+      console.error('Error updating booking:', error)
+      alert('Failed to update booking. Please try again.')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+  
+  // Open edit dialog
+  const openEditDialog = (booking: VehicleBooking, mode: 'pickup' | 'dropoff') => {
+    setEditingBooking(booking)
+    setEditMode(mode)
+    setBookingForm(prev => ({
+      ...prev,
+      pickup_location: booking.pickup_location || '',
+      pickup_time: booking.pickup_time || '',
+      pickup_date: booking.pickup_date || '',
+      pickup_notes: booking.pickup_notes || '',
+      dropoff_location: booking.dropoff_location || '',
+      dropoff_time: booking.dropoff_time || '',
+      dropoff_date: booking.dropoff_date || '',
+      dropoff_notes: booking.dropoff_notes || '',
+    }))
+    setShowEditDialog(true)
+  }
+  
   const resetSelection = () => {
     setSelectedVehicle(null)
     setSelectedRange({ start: null, end: null })
     setHoverDate(null)
-    setBookingForm({ customer_name: '', customer_phone: '', notes: '' })
+    setBookingForm({ 
+      customer_name: '', 
+      customer_phone: '', 
+      notes: '',
+      pickup_location: '',
+      pickup_time: '',
+      pickup_date: '',
+      pickup_notes: '',
+      dropoff_location: '',
+      dropoff_time: '',
+      dropoff_date: '',
+      dropoff_notes: '',
+    })
   }
   
   // Calculate daily booking counts
@@ -628,8 +718,8 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                                   <TooltipTrigger asChild>
                                     {cell}
                                   </TooltipTrigger>
-                                  <TooltipContent className="max-w-xs">
-                                    <div className="space-y-1">
+                                  <TooltipContent className="max-w-sm p-0" sideOffset={5}>
+                                    <div className="p-3 space-y-2">
                                       <div className="font-medium flex items-center gap-1">
                                         <User className="h-3 w-3" />
                                         {bookingInfo.booking.customer_name || 'No customer name'}
@@ -641,6 +731,64 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                                       {bookingInfo.booking.notes && (
                                         <div className="text-xs">{bookingInfo.booking.notes}</div>
                                       )}
+                                      
+                                      {/* Pickup Info */}
+                                      {bookingInfo.booking.pickup_location && (
+                                        <div className="text-xs border-t pt-2 mt-2">
+                                          <div className="flex items-center gap-1 text-emerald-600 font-medium">
+                                            <MapPin className="h-3 w-3" />
+                                            Pickup: {bookingInfo.booking.pickup_location}
+                                          </div>
+                                          {bookingInfo.booking.pickup_date && (
+                                            <div className="text-muted-foreground ml-4">
+                                              {bookingInfo.booking.pickup_date} {bookingInfo.booking.pickup_time || ''}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Dropoff Info */}
+                                      {bookingInfo.booking.dropoff_location && (
+                                        <div className="text-xs">
+                                          <div className="flex items-center gap-1 text-amber-600 font-medium">
+                                            <MapPin className="h-3 w-3" />
+                                            Drop-off: {bookingInfo.booking.dropoff_location}
+                                          </div>
+                                          {bookingInfo.booking.dropoff_date && (
+                                            <div className="text-muted-foreground ml-4">
+                                              {bookingInfo.booking.dropoff_date} {bookingInfo.booking.dropoff_time || ''}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Action Buttons */}
+                                    <div className="border-t bg-muted/50 p-2 flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 text-xs flex-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          openEditDialog(bookingInfo.booking, 'pickup')
+                                        }}
+                                      >
+                                        <Pencil className="h-3 w-3 mr-1" />
+                                        {bookingInfo.booking.pickup_location ? 'Edit Pickup' : '+ Add Pickup'}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 text-xs flex-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          openEditDialog(bookingInfo.booking, 'dropoff')
+                                        }}
+                                      >
+                                        <Pencil className="h-3 w-3 mr-1" />
+                                        {bookingInfo.booking.dropoff_location ? 'Edit Drop-off' : '+ Add Drop-off'}
+                                      </Button>
                                     </div>
                                   </TooltipContent>
                                 </Tooltip>
@@ -661,7 +809,7 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
         
         {/* Create Booking Dialog */}
         <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
@@ -684,39 +832,138 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                   </div>
                 </div>
                 
-                {/* Customer Details */}
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="customer_name">Customer Name</Label>
-                    <Input
-                      id="customer_name"
-                      placeholder="Enter customer name"
-                      value={bookingForm.customer_name}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, customer_name: e.target.value }))}
-                    />
-                  </div>
+                <Tabs defaultValue="customer" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="customer">Customer</TabsTrigger>
+                    <TabsTrigger value="pickup">Pickup</TabsTrigger>
+                    <TabsTrigger value="dropoff">Drop-off</TabsTrigger>
+                  </TabsList>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="customer_phone">Phone Number</Label>
-                    <Input
-                      id="customer_phone"
-                      placeholder="Enter phone number"
-                      value={bookingForm.customer_phone}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, customer_phone: e.target.value }))}
-                    />
-                  </div>
+                  <TabsContent value="customer" className="space-y-3 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="customer_name">Customer Name</Label>
+                      <Input
+                        id="customer_name"
+                        placeholder="Enter customer name"
+                        value={bookingForm.customer_name}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, customer_name: e.target.value }))}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="customer_phone">Phone Number</Label>
+                      <Input
+                        id="customer_phone"
+                        placeholder="Enter phone number"
+                        value={bookingForm.customer_phone}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, customer_phone: e.target.value }))}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Notes (Optional)</Label>
+                      <Textarea
+                        id="notes"
+                        placeholder="Add any notes..."
+                        value={bookingForm.notes}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
+                        rows={2}
+                      />
+                    </div>
+                  </TabsContent>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notes (Optional)</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Add any notes..."
-                      value={bookingForm.notes}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
-                      rows={2}
-                    />
-                  </div>
-                </div>
+                  <TabsContent value="pickup" className="space-y-3 mt-4">
+                    <div className="flex items-center gap-2 text-emerald-600 mb-2">
+                      <MapPin className="h-4 w-4" />
+                      <span className="font-medium">Pickup Details</span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="pickup_location">Pickup Location</Label>
+                        <Input
+                          id="pickup_location"
+                          placeholder="e.g., Airport, Office, Hotel"
+                          value={bookingForm.pickup_location}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_location: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pickup_date">Pickup Date</Label>
+                        <Input
+                          id="pickup_date"
+                          type="date"
+                          value={bookingForm.pickup_date}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pickup_time">Pickup Time</Label>
+                        <Input
+                          id="pickup_time"
+                          type="time"
+                          value={bookingForm.pickup_time}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_time: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup_notes">Pickup Notes</Label>
+                      <Textarea
+                        id="pickup_notes"
+                        placeholder="Additional pickup instructions..."
+                        value={bookingForm.pickup_notes}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_notes: e.target.value }))}
+                        rows={2}
+                      />
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="dropoff" className="space-y-3 mt-4">
+                    <div className="flex items-center gap-2 text-amber-600 mb-2">
+                      <MapPin className="h-4 w-4" />
+                      <span className="font-medium">Drop-off Details</span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="dropoff_location">Drop-off Location</Label>
+                        <Input
+                          id="dropoff_location"
+                          placeholder="e.g., Airport, Office, Hotel"
+                          value={bookingForm.dropoff_location}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_location: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dropoff_date">Drop-off Date</Label>
+                        <Input
+                          id="dropoff_date"
+                          type="date"
+                          value={bookingForm.dropoff_date}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dropoff_time">Drop-off Time</Label>
+                        <Input
+                          id="dropoff_time"
+                          type="time"
+                          value={bookingForm.dropoff_time}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_time: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dropoff_notes">Drop-off Notes</Label>
+                      <Textarea
+                        id="dropoff_notes"
+                        placeholder="Additional drop-off instructions..."
+                        value={bookingForm.dropoff_notes}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_notes: e.target.value }))}
+                        rows={2}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
             
@@ -726,6 +973,122 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
               </Button>
               <Button onClick={handleCreateBooking} disabled={isCreating}>
                 {isCreating ? 'Creating...' : 'Create Booking'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Pickup/Drop-off Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-5 w-5" />
+                {editMode === 'pickup' ? 'Edit Pickup Details' : 'Edit Drop-off Details'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {editingBooking && (
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-muted/50 p-3 text-sm">
+                  <span className="font-medium">{editingBooking.customer_name}</span>
+                  <span className="text-muted-foreground"> | {format(new Date(editingBooking.start_date), 'MMM d')} - {format(new Date(editingBooking.end_date), 'MMM d, yyyy')}</span>
+                </div>
+                
+                {editMode === 'pickup' ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-600">
+                      <MapPin className="h-4 w-4" />
+                      <span className="font-medium">Pickup Details</span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Pickup Location</Label>
+                        <Input
+                          placeholder="e.g., Airport, Office"
+                          value={bookingForm.pickup_location}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_location: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Pickup Date</Label>
+                        <Input
+                          type="date"
+                          value={bookingForm.pickup_date}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Pickup Time</Label>
+                        <Input
+                          type="time"
+                          value={bookingForm.pickup_time}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_time: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Pickup Notes</Label>
+                      <Textarea
+                        placeholder="Additional instructions..."
+                        value={bookingForm.pickup_notes}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_notes: e.target.value }))}
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-amber-600">
+                      <MapPin className="h-4 w-4" />
+                      <span className="font-medium">Drop-off Details</span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Drop-off Location</Label>
+                        <Input
+                          placeholder="e.g., Airport, Office"
+                          value={bookingForm.dropoff_location}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_location: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Drop-off Date</Label>
+                        <Input
+                          type="date"
+                          value={bookingForm.dropoff_date}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Drop-off Time</Label>
+                        <Input
+                          type="time"
+                          value={bookingForm.dropoff_time}
+                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_time: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Drop-off Notes</Label>
+                      <Textarea
+                        placeholder="Additional instructions..."
+                        value={bookingForm.dropoff_notes}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_notes: e.target.value }))}
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditPickupDropoff} disabled={isCreating}>
+                {isCreating ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </DialogContent>
