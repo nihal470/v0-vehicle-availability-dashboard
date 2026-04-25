@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { ChevronDown, ChevronUp, Car, ChevronLeft, ChevronRight, Plus, X, Calendar, User, Clock } from 'lucide-react'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, isBefore, isAfter } from 'date-fns'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, isBefore, isAfter, addDays } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -132,12 +132,29 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
     notes: '',
   })
   
-  // Get days for current month
+  // Get days for current month and next month (60 days view for cross-month bookings)
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth)
-    const end = endOfMonth(currentMonth)
+    const end = endOfMonth(addMonths(currentMonth, 1))
     return eachDayOfInterval({ start, end })
   }, [currentMonth])
+  
+  // Group days by month for headers
+  const daysByMonth = useMemo(() => {
+    const groups: { month: Date; days: Date[] }[] = []
+    let currentGroup: { month: Date; days: Date[] } | null = null
+    
+    for (const day of days) {
+      const monthKey = format(day, 'yyyy-MM')
+      if (!currentGroup || format(currentGroup.month, 'yyyy-MM') !== monthKey) {
+        currentGroup = { month: startOfMonth(day), days: [] }
+        groups.push(currentGroup)
+      }
+      currentGroup.days.push(day)
+    }
+    
+    return groups
+  }, [days])
   
   // Filter categories and vehicles
   const filteredCategories = useMemo(() => {
@@ -187,12 +204,20 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
     const bookingInfo = getBookingForDate(date, vehicle.bookings)
     if (bookingInfo) return // Can't select booked dates
     
-    if (!selectedVehicle || selectedVehicle.id !== vehicle.id) {
+    // If clicking on a different vehicle, always start fresh selection
+    if (selectedVehicle && selectedVehicle.id !== vehicle.id) {
+      // Only allow selection on one vehicle at a time
+      setSelectedVehicle(vehicle)
+      setSelectedRange({ start: date, end: null })
+      return
+    }
+    
+    if (!selectedVehicle) {
       // Start new selection on this vehicle
       setSelectedVehicle(vehicle)
       setSelectedRange({ start: date, end: null })
     } else if (!selectedRange.end) {
-      // Complete the selection
+      // Complete the selection on the same vehicle
       const start = selectedRange.start!
       const rangeStart = start < date ? start : date
       const rangeEnd = start < date ? date : start
@@ -205,6 +230,9 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
       
       setSelectedRange({ start: rangeStart, end: rangeEnd })
       setShowBookingDialog(true)
+    } else {
+      // Already have a complete selection, start new one
+      setSelectedRange({ start: date, end: null })
     }
   }, [selectedVehicle, selectedRange])
   
@@ -385,25 +413,45 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
         )}
         
         {/* Calendar Grid */}
-        <div className="overflow-x-auto rounded-lg border bg-card">
-          <div className="min-w-[1400px]">
+        <div className="overflow-auto rounded-lg border bg-card max-h-[70vh]">
+          <div className="min-w-[1800px]">
+            {/* Month Headers */}
+            <div className="sticky top-0 z-20 flex border-b bg-slate-800 text-white">
+              <div className="w-56 shrink-0 sticky left-0 z-30 bg-slate-800 border-r border-slate-600 px-4 py-2 font-medium">
+                Vehicle
+              </div>
+              <div className="flex flex-1">
+                {daysByMonth.map((group) => (
+                  <div 
+                    key={format(group.month, 'yyyy-MM')}
+                    className="border-l border-slate-600 px-4 py-2 font-semibold text-center"
+                    style={{ width: `${group.days.length * 40}px` }}
+                  >
+                    {format(group.month, 'MMMM yyyy')}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
             {/* Header - Days */}
-            <div className="sticky top-0 z-10 flex border-b bg-primary text-primary-foreground">
-              <div className="w-56 shrink-0 border-r border-primary-foreground/20 px-4 py-3 font-medium">
-                Vehicle / Date
+            <div className="sticky top-[41px] z-20 flex border-b bg-primary text-primary-foreground">
+              <div className="w-56 shrink-0 sticky left-0 z-30 bg-primary border-r border-primary-foreground/20 px-4 py-2 font-medium">
+                Date
               </div>
               <div className="flex flex-1">
                 {days.map((day) => {
                   const isWeekend = day.getDay() === 0 || day.getDay() === 6
                   const dateKey = format(day, 'yyyy-MM-dd')
                   const bookingCount = dailyBookingCounts[dateKey] || 0
+                  const isFirstOfMonth = day.getDate() === 1
                   
                   return (
                     <div 
                       key={dateKey} 
                       className={cn(
-                        'flex w-10 shrink-0 flex-col items-center justify-center border-l border-primary-foreground/20 py-2 text-xs',
-                        isWeekend && 'bg-primary-foreground/10'
+                        'flex w-10 shrink-0 flex-col items-center justify-center border-l border-primary-foreground/20 py-1 text-xs',
+                        isWeekend && 'bg-primary-foreground/10',
+                        isFirstOfMonth && 'border-l-2 border-l-white'
                       )}
                     >
                       <span className="font-medium">{format(day, 'd')}</span>
@@ -432,7 +480,7 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                       className="flex cursor-pointer border-b bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                       onClick={() => toggleCategory(category.id)}
                     >
-                      <div className="flex w-56 shrink-0 items-center gap-2 border-r px-4 py-2">
+                      <div className="flex w-56 shrink-0 items-center gap-2 border-r px-4 py-2 sticky left-0 z-10 bg-sidebar">
                         <Badge variant="outline" className="h-6 w-6 justify-center rounded-full p-0">
                           {vehicleCount}
                         </Badge>
@@ -447,6 +495,7 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                         {days.map((day) => {
                           const dateKey = format(day, 'yyyy-MM-dd')
                           const isWeekend = day.getDay() === 0 || day.getDay() === 6
+                          const isFirstOfMonth = day.getDate() === 1
                           
                           // Calculate availability for category
                           let booked = 0
@@ -479,7 +528,8 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                               className={cn(
                                 'flex w-10 shrink-0 items-center justify-center border-l py-2 text-xs font-medium',
                                 bgColor,
-                                isWeekend && 'opacity-90'
+                                isWeekend && 'opacity-90',
+                                isFirstOfMonth && 'border-l-2 border-l-white'
                               )}
                             >
                               {available}
@@ -498,7 +548,10 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                           selectedVehicle?.id === vehicle.id && 'bg-primary/5'
                         )}
                       >
-                        <div className="flex w-56 shrink-0 items-center gap-2 border-r px-4 py-1 pl-8">
+                        <div className={cn(
+                          "flex w-56 shrink-0 items-center gap-2 border-r px-4 py-1 pl-8 sticky left-0 z-10 bg-card",
+                          selectedVehicle?.id === vehicle.id && "bg-primary/5"
+                        )}>
                           <Car className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-sm truncate font-mono">
                             {vehicle.license_plate}
@@ -513,6 +566,7 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                           {days.map((day) => {
                             const dateKey = format(day, 'yyyy-MM-dd')
                             const isWeekend = day.getDay() === 0 || day.getDay() === 6
+                            const isFirstOfMonth = day.getDate() === 1
                             const status = getCellStatus(vehicle, day, selectedRange, hoverDate)
                             const bookingInfo = getBookingForDate(day, vehicle.bookings)
                             
@@ -543,7 +597,8 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                                 key={dateKey}
                                 className={cn(
                                   'w-10 shrink-0 border-l transition-colors',
-                                  cursorClass
+                                  cursorClass,
+                                  isFirstOfMonth && 'border-l-2 border-l-slate-400'
                                 )}
                                 onClick={() => handleCellClick(vehicle, day)}
                                 onMouseEnter={() => {
