@@ -291,8 +291,8 @@ export function VehicleFines({ initialFines, vehicles, tripLogs }: VehicleFinesP
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>Outstanding Fines:</strong> AED {totalUnpaid.toLocaleString()} unpaid
-            {totalPending > 0 && <span> + AED {totalPending.toLocaleString()} pending</span>}
+            <strong>Outstanding Fines:</strong> OMR {totalUnpaid.toLocaleString()} unpaid
+            {totalPending > 0 && <span> + OMR {totalPending.toLocaleString()} pending</span>}
           </AlertDescription>
         </Alert>
       )}
@@ -570,7 +570,7 @@ export function VehicleFines({ initialFines, vehicles, tripLogs }: VehicleFinesP
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Amount (AED) *</Label>
+                <Label>Amount (OMR) *</Label>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -722,7 +722,7 @@ export function VehicleFines({ initialFines, vehicles, tripLogs }: VehicleFinesP
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Amount (AED) *</Label>
+                <Label>Amount (OMR) *</Label>
                 <Input
                   type="number"
                   value={formData.fine_amount}

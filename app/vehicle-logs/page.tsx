@@ -128,7 +128,7 @@ export default async function VehicleLogsPage() {
                   <p className="text-sm text-muted-foreground">Total Fines</p>
                   <p className="text-2xl font-bold">{totalFines}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    AED {totalFinesAmount.toLocaleString()} total
+                    OMR {totalFinesAmount.toLocaleString()} total
                   </p>
                 </div>
                 <div className="rounded-full bg-amber-100 p-3">
@@ -144,7 +144,7 @@ export default async function VehicleLogsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Outstanding</p>
                   <p className="text-2xl font-bold text-red-600">
-                    AED {totalUnpaidAmount.toLocaleString()}
+                    OMR {totalUnpaidAmount.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {unpaidFines.length} unpaid, {pendingFines.length} pending
@@ -179,7 +179,7 @@ export default async function VehicleLogsPage() {
                     </Badge>
                     <span className="font-medium">{driver}</span>
                     <Badge variant="secondary" className="bg-red-100 text-red-700">
-                      AED {amount.toLocaleString()}
+                      OMR {amount.toLocaleString()}
                     </Badge>
                   </div>
                 ))}
