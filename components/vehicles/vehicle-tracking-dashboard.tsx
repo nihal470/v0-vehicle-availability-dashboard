@@ -24,7 +24,11 @@ import {
   XCircle,
   ArrowRightLeft,
   CreditCard,
-  ListChecks
+  ListChecks,
+  MapPin,
+  Car as CarIcon,
+  Plane,
+  Building2
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
@@ -443,6 +447,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
                   <th className="p-3 text-left text-sm font-medium">Own/Lease</th>
                   <th className="p-3 text-left text-sm font-medium">Status</th>
+                  <th className="p-3 text-left text-sm font-medium">Parked Location</th>
                   <th className="p-3 text-left text-sm font-medium">Customer Name</th>
                   <th className="p-3 text-left text-sm font-medium">Return Date</th>
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
@@ -504,6 +509,24 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           {vehicle.status === 'maintenance' && <Wrench className="h-3 w-3 mr-1" />}
                           {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
                         </Badge>
+                      </td>
+                      <td className="p-3">
+                        {vehicle.status === 'idle' && vehicle.parked_location ? (
+                          <div className="flex items-center gap-1.5">
+                            {vehicle.parked_location === 'car_wash' && <CarIcon className="h-4 w-4 text-amber-600" />}
+                            {vehicle.parked_location === 'airport' && <Plane className="h-4 w-4 text-amber-600" />}
+                            {vehicle.parked_location === 'office_front' && <Building2 className="h-4 w-4 text-amber-600" />}
+                            {vehicle.parked_location === 'custom' && <MapPin className="h-4 w-4 text-amber-600" />}
+                            <span className="text-sm">
+                              {vehicle.parked_location === 'car_wash' && 'Car Wash'}
+                              {vehicle.parked_location === 'airport' && 'Airport'}
+                              {vehicle.parked_location === 'office_front' && 'Office Front'}
+                              {vehicle.parked_location === 'custom' && vehicle.parked_location_custom}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </td>
                       <td className="p-3">
                         {vehicle.customer_name ? (
