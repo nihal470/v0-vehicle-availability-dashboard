@@ -24,7 +24,11 @@ import {
   XCircle,
   ArrowRightLeft,
   CreditCard,
-  ListChecks
+  ListChecks,
+  Car,
+  Plane,
+  Building2,
+  MapPin
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
@@ -443,6 +447,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
                   <th className="p-3 text-left text-sm font-medium">Own/Lease</th>
                   <th className="p-3 text-left text-sm font-medium">Status</th>
+                  <th className="p-3 text-left text-sm font-medium">Parked Location</th>
                   <th className="p-3 text-left text-sm font-medium">Customer Name</th>
                   <th className="p-3 text-left text-sm font-medium">Return Date</th>
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
@@ -502,8 +507,40 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           {vehicle.status === 'garage' && <Warehouse className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'available' && <CheckCircle2 className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'maintenance' && <Wrench className="h-3 w-3 mr-1" />}
-                          {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
+                          {vehicle.status === 'available' ? 'Reserved' : vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
                         </Badge>
+                      </td>
+                      <td className="p-3">
+                        {vehicle.status === 'idle' && vehicle.parked_location ? (
+                          <div className="flex items-center gap-1.5">
+                            {vehicle.parked_location === 'car_wash' && (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                                <Car className="h-3 w-3 mr-1" />
+                                Car Wash
+                              </Badge>
+                            )}
+                            {vehicle.parked_location === 'airport' && (
+                              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                                <Plane className="h-3 w-3 mr-1" />
+                                Airport
+                              </Badge>
+                            )}
+                            {vehicle.parked_location === 'office_front' && (
+                              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300">
+                                <Building2 className="h-3 w-3 mr-1" />
+                                Office Front
+                              </Badge>
+                            )}
+                            {vehicle.parked_location === 'custom' && (
+                              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {vehicle.parked_location_custom || 'Custom'}
+                              </Badge>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </td>
                       <td className="p-3">
                         {vehicle.customer_name ? (

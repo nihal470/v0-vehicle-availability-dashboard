@@ -46,6 +46,9 @@ export interface Vehicle {
   payment_date: string | null
   // Ownership
   ownership_type: 'owned' | 'leased' | null
+  // Parked Location (for idle vehicles)
+  parked_location: 'car_wash' | 'airport' | 'office_front' | 'custom' | null
+  parked_location_custom: string | null
   category?: VehicleCategory
   location?: Location
 }
