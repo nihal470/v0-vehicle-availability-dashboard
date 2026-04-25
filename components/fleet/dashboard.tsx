@@ -6,7 +6,7 @@ import { FilterBar } from './filter-bar'
 import { AvailabilityCalendar } from './availability-calendar'
 import { ReturnsSummary } from './returns-summary'
 import { Button } from '@/components/ui/button'
-import { Calendar } from 'lucide-react'
+import { Calendar, FileText } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, FleetStats } from '@/lib/types'
 
@@ -106,12 +106,20 @@ export function Dashboard({
           onCategoryChange={setSelectedCategory}
           onApply={handleApply}
         />
-        <Link href="/calendar">
-          <Button className="gap-2">
-            <Calendar className="h-4 w-4" />
-            Open Booking Calendar
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/vehicle-logs">
+            <Button variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Vehicle Logs
+            </Button>
+          </Link>
+          <Link href="/calendar">
+            <Button className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Booking Calendar
+            </Button>
+          </Link>
+        </div>
       </div>
       
       <AvailabilityCalendar

@@ -65,6 +65,48 @@ export interface VehicleAlert {
   kmRemaining?: number
 }
 
+// Trip Log for driver usage tracking
+export interface TripLog {
+  id: string
+  vehicle_id: string
+  trip_date: string
+  driver_name: string
+  time_out: string
+  time_in: string | null
+  trip_purpose: string | null
+  odometer_start: number | null
+  odometer_end: number | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  vehicle?: Vehicle
+}
+
+// Vehicle Fine/Violation tracking
+export type FinePaymentStatus = 'paid' | 'unpaid' | 'pending'
+
+export interface VehicleFine {
+  id: string
+  fine_reference: string | null
+  vehicle_id: string
+  trip_log_id: string | null
+  fine_date: string
+  fine_time: string | null
+  driver_name: string | null
+  fine_type: string
+  fine_description: string | null
+  fine_amount: number
+  payment_status: FinePaymentStatus
+  payment_date: string | null
+  payment_reference: string | null
+  location: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  vehicle?: Vehicle
+  trip_log?: TripLog
+}
+
 export interface VehicleBooking {
   id: string
   vehicle_id: string
