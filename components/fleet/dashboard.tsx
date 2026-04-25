@@ -5,6 +5,9 @@ import { StatsCards } from './stats-cards'
 import { FilterBar } from './filter-bar'
 import { AvailabilityCalendar } from './availability-calendar'
 import { ReturnsSummary } from './returns-summary'
+import { Button } from '@/components/ui/button'
+import { Calendar } from 'lucide-react'
+import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, FleetStats } from '@/lib/types'
 
 interface DashboardProps {
@@ -89,19 +92,27 @@ export function Dashboard({
         </div>
       )}
       
-      <FilterBar
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-        onMonthChange={setSelectedMonth}
-        onYearChange={setSelectedYear}
-        locations={locations}
-        categories={allCategories}
-        selectedLocation={selectedLocation}
-        selectedCategory={selectedCategory}
-        onLocationChange={setSelectedLocation}
-        onCategoryChange={setSelectedCategory}
-        onApply={handleApply}
-      />
+      <div className="flex items-center justify-between">
+        <FilterBar
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthChange={setSelectedMonth}
+          onYearChange={setSelectedYear}
+          locations={locations}
+          categories={allCategories}
+          selectedLocation={selectedLocation}
+          selectedCategory={selectedCategory}
+          onLocationChange={setSelectedLocation}
+          onCategoryChange={setSelectedCategory}
+          onApply={handleApply}
+        />
+        <Link href="/calendar">
+          <Button className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Open Booking Calendar
+          </Button>
+        </Link>
+      </div>
       
       <AvailabilityCalendar
         categories={filteredCategories}
