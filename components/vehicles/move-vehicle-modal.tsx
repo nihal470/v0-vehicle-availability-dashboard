@@ -16,8 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Warehouse, Wrench, PauseCircle, CheckCircle2, Car, Plane, Building2, MapPin } from 'lucide-react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Warehouse, Wrench, PauseCircle, CheckCircle2 } from 'lucide-react'
 import type { Vehicle } from '@/lib/types'
 
 interface Props {
@@ -33,15 +32,6 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<string>('garage')
   const [reason, setReason] = useState('')
   const [estimatedDate, setEstimatedDate] = useState('')
-  const [parkedLocation, setParkedLocation] = useState<string>('')
-  const [parkedLocationCustom, setParkedLocationCustom] = useState('')
-
-  const parkedLocationOptions = [
-    { value: 'car_wash', label: 'Car Wash', icon: Car },
-    { value: 'airport', label: 'Airport', icon: Plane },
-    { value: 'office_front', label: 'Office Front', icon: Building2 },
-    { value: 'custom', label: 'Custom Location', icon: MapPin },
-  ]
 
   const statusOptions = [
     {
@@ -78,24 +68,12 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
     setIsLoading(true)
 
     try {
-      const updateData: Record<string, unknown> = {
-        status: selectedStatus,
-        updated_at: new Date().toISOString(),
-      }
-
-      // Add parked location for idle status
-      if (selectedStatus === 'idle') {
-        updateData.parked_location = parkedLocation || null
-        updateData.parked_location_custom = parkedLocation === 'custom' ? parkedLocationCustom : null
-      } else {
-        // Clear parked location when not idle
-        updateData.parked_location = null
-        updateData.parked_location_custom = null
-      }
-
       const { error } = await supabase
         .from('vehicles')
-        .update(updateData)
+        .update({
+          status: selectedStatus,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', vehicle.id)
 
       if (error) throw error
@@ -156,45 +134,6 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
               ))}
             </RadioGroup>
           </div>
-
-          {/* Parked Location (for idle status) */}
-          {selectedStatus === 'idle' && (
-            <div className="space-y-4 rounded-lg border bg-amber-50/50 p-4">
-              <div className="space-y-2">
-                <Label htmlFor="parkedLocation" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-amber-600" />
-                  Current Parked Location
-                </Label>
-                <Select value={parkedLocation} onValueChange={setParkedLocation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parked location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {parkedLocationOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <div className="flex items-center gap-2">
-                          <option.icon className="h-4 w-4" />
-                          {option.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {parkedLocation === 'custom' && (
-                <div className="space-y-2">
-                  <Label htmlFor="customLocation">Custom Location Name</Label>
-                  <Input
-                    id="customLocation"
-                    placeholder="e.g., Customer Site, Workshop, etc."
-                    value={parkedLocationCustom}
-                    onChange={(e) => setParkedLocationCustom(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Reason (optional) */}
           {(selectedStatus === 'garage' || selectedStatus === 'maintenance') && (
