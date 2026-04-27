@@ -28,7 +28,11 @@ import {
   MapPin,
   Car as CarIcon,
   Plane,
-  Building2
+  Building2,
+  LogOut,
+  Archive,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
@@ -38,6 +42,8 @@ import { MoveVehicleModal } from './move-vehicle-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
 import { BulkUpdateModal } from './bulk-update-modal'
 import { differenceInDays, format } from 'date-fns'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   vehicles: Vehicle[]
@@ -185,23 +191,73 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showReturnedVehicles, setShowReturnedVehicles] = useState(false)
+  
+  const supabase = createClient()
+  const router = useRouter()
 
-  const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
+  // Handle marking a leased vehicle as returned
+  const handleMarkAsReturned = async (vehicle: Vehicle) => {
+    if (!confirm(`Are you sure you want to mark "${vehicle.make} ${vehicle.model}" (${vehicle.license_plate}) as returned?\n\nThis will:\n- Change status to Inactive\n- Exclude from Active Fleet count\n- Hide from operational dashboards\n\nAll history will be retained for audit purposes.`)) {
+      return
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({ 
+          status: 'returned',
+          customer_name: null,
+          return_date: null,
+          ag_no: null,
+          rental_type: null,
+          rental_renewal_date: null,
+          payment_status: null,
+          payment_date: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', vehicle.id)
+      
+      if (error) throw error
+      
+      router.refresh()
+    } catch (error) {
+      console.error('Error marking vehicle as returned:', error)
+      alert('Failed to mark vehicle as returned. Please try again.')
+    }
+  }
+
+  // Filter out returned vehicles for active fleet
+  const activeVehicles = useMemo(() => 
+    vehicles.filter(v => v.status !== 'returned'), [vehicles])
+  
+  const returnedVehicles = useMemo(() => 
+    vehicles.filter(v => v.status === 'returned'), [vehicles])
+
+  const alerts = useMemo(() => generateAlerts(activeVehicles), [activeVehicles])
   
   const criticalAlerts = alerts.filter(a => a.severity === 'critical')
   const warningAlerts = alerts.filter(a => a.severity === 'warning')
   
-  // Vehicle status counts
+  // Vehicle status counts (excluding returned)
   const statusCounts = useMemo(() => ({
-    idle: vehicles.filter(v => v.status === 'idle').length,
-    garage: vehicles.filter(v => v.status === 'garage').length,
-    running: vehicles.filter(v => v.status === 'running').length,
-    available: vehicles.filter(v => v.status === 'available').length,
-    maintenance: vehicles.filter(v => v.status === 'maintenance').length,
-  }), [vehicles])
+    idle: activeVehicles.filter(v => v.status === 'idle').length,
+    garage: activeVehicles.filter(v => v.status === 'garage').length,
+    running: activeVehicles.filter(v => v.status === 'running').length,
+    available: activeVehicles.filter(v => v.status === 'available').length,
+    maintenance: activeVehicles.filter(v => v.status === 'maintenance').length,
+    returned: returnedVehicles.length,
+  }), [activeVehicles, returnedVehicles])
 
   const filteredVehicles = useMemo(() => {
-    return vehicles.filter((vehicle) => {
+    // Use active vehicles by default, or include returned if filter is specifically 'returned' or showReturnedVehicles is true
+    const baseVehicles = statusFilter === 'returned' 
+      ? returnedVehicles 
+      : showReturnedVehicles 
+        ? vehicles 
+        : activeVehicles
+    
+    return baseVehicles.filter((vehicle) => {
       const matchesSearch = 
         vehicle.license_plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
         vehicle.make.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -213,7 +269,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
 
       return matchesSearch && matchesCategory && matchesStatus
     })
-  }, [vehicles, searchQuery, categoryFilter, statusFilter])
+  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, showReturnedVehicles])
 
   const getAlertIcon = (type: VehicleAlert['type']) => {
     switch (type) {
@@ -238,12 +294,17 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Fleet</CardTitle>
             <Car className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{vehicles.length}</div>
-            <p className="text-xs text-muted-foreground">In fleet</p>
+            <div className="text-2xl font-bold">{activeVehicles.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {returnedVehicles.length > 0 && (
+                <span className="text-slate-500">+{returnedVehicles.length} returned</span>
+              )}
+              {returnedVehicles.length === 0 && 'In fleet'}
+            </p>
           </CardContent>
         </Card>
         
@@ -349,6 +410,19 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
               <span className="text-lg font-bold">{statusCounts.maintenance}</span>
               <span className="text-xs">Maintenance</span>
             </Button>
+            
+            {/* Returned (Inactive) - Only show if there are returned vehicles */}
+            {statusCounts.returned > 0 && (
+              <Button
+                variant={statusFilter === 'returned' ? 'default' : 'outline'}
+                className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'returned' ? 'bg-rose-600 hover:bg-rose-700' : 'border-rose-500/50 text-rose-700 hover:bg-rose-50'}`}
+                onClick={() => setStatusFilter('returned')}
+              >
+                <Archive className="h-6 w-6" />
+                <span className="text-lg font-bold">{statusCounts.returned}</span>
+                <span className="text-xs">Returned</span>
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -500,6 +574,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           vehicle.status === 'garage' ? 'bg-slate-500 hover:bg-slate-600' :
                           vehicle.status === 'available' ? 'bg-sky-500 hover:bg-sky-600' :
                           vehicle.status === 'maintenance' ? 'bg-purple-500 hover:bg-purple-600' :
+                          vehicle.status === 'returned' ? 'bg-rose-500 hover:bg-rose-600' :
                           'bg-gray-500'
                         }>
                           {vehicle.status === 'running' && <PlayCircle className="h-3 w-3 mr-1" />}
@@ -507,7 +582,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           {vehicle.status === 'garage' && <Warehouse className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'available' && <CheckCircle2 className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'maintenance' && <Wrench className="h-3 w-3 mr-1" />}
-                          {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
+                          {vehicle.status === 'returned' && <Archive className="h-3 w-3 mr-1" />}
+                          {vehicle.status === 'returned' ? 'Inactive' : vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
                         </Badge>
                       </td>
                       <td className="p-3">
@@ -674,7 +750,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                             </>
                           )}
                           {/* Move button - available for idle, available, garage, maintenance */}
-                          {!vehicle.customer_name && (
+                          {!vehicle.customer_name && vehicle.status !== 'returned' && (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -687,6 +763,25 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               <ArrowRightLeft className="h-4 w-4 mr-1" />
                               Move
                             </Button>
+                          )}
+                          {/* Mark as Returned - only for leased vehicles that are not running */}
+                          {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-rose-600 border-rose-600 hover:bg-rose-50"
+                              onClick={() => handleMarkAsReturned(vehicle)}
+                            >
+                              <LogOut className="h-4 w-4 mr-1" />
+                              Return
+                            </Button>
+                          )}
+                          {/* Returned badge for returned vehicles */}
+                          {vehicle.status === 'returned' && (
+                            <Badge variant="secondary" className="bg-rose-100 text-rose-700">
+                              <Archive className="h-3 w-3 mr-1" />
+                              Inactive
+                            </Badge>
                           )}
                         </div>
                       </td>

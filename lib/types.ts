@@ -1,4 +1,4 @@
-export type VehicleStatus = 'available' | 'running' | 'idle' | 'garage' | 'maintenance'
+export type VehicleStatus = 'available' | 'running' | 'idle' | 'garage' | 'maintenance' | 'returned'
 export type BookingStatus = 'booked' | 'completed' | 'cancelled'
 
 export interface Location {

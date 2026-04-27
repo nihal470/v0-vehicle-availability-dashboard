@@ -22,10 +22,10 @@ async function getFleetData() {
     supabase.from('locations').select('*').order('name'),
   ])
 
-  // Build categories with vehicles and their bookings
+  // Build categories with vehicles and their bookings (exclude returned vehicles from active operations)
   const categoriesWithVehicles: CategoryWithVehicles[] = (categories || []).map((category: VehicleCategory) => {
     const categoryVehicles = (vehicles || [])
-      .filter((v: Vehicle) => v.category_id === category.id)
+      .filter((v: Vehicle) => v.category_id === category.id && v.status !== 'returned')
       .map((vehicle: Vehicle) => ({
         ...vehicle,
         bookings: (bookings || []).filter((b: VehicleBooking) => b.vehicle_id === vehicle.id),
@@ -37,15 +37,16 @@ async function getFleetData() {
     }
   })
 
-  // Calculate stats
+  // Calculate stats (exclude returned/inactive vehicles from active fleet)
   const allVehicles = vehicles || []
+  const activeVehicles = allVehicles.filter((v: Vehicle) => v.status !== 'returned')
   const stats: FleetStats = {
-    totalVehicles: allVehicles.length,
-    runningVehicles: allVehicles.filter((v: Vehicle) => v.status === 'running').length,
-    idleVehicles: allVehicles.filter((v: Vehicle) => v.status === 'idle').length,
-    inGarage: allVehicles.filter((v: Vehicle) => v.status === 'garage').length,
-    available: allVehicles.filter((v: Vehicle) => v.status === 'available').length,
-    maintenance: allVehicles.filter((v: Vehicle) => v.status === 'maintenance').length,
+    totalVehicles: activeVehicles.length,
+    runningVehicles: activeVehicles.filter((v: Vehicle) => v.status === 'running').length,
+    idleVehicles: activeVehicles.filter((v: Vehicle) => v.status === 'idle').length,
+    inGarage: activeVehicles.filter((v: Vehicle) => v.status === 'garage').length,
+    available: activeVehicles.filter((v: Vehicle) => v.status === 'available').length,
+    maintenance: activeVehicles.filter((v: Vehicle) => v.status === 'maintenance').length,
   }
 
   return {
