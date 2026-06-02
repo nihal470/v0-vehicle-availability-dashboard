@@ -76,18 +76,18 @@ export function PaymentReceiptPreview({ data, autoPrint }: Props) {
         style={{ fontFamily: 'Arial, sans-serif' }}
       >
         {/* Header with Logo */}
-        <div className="bg-black text-white p-6">
+        <div className="bg-white p-6 border-b">
           <div className="flex items-center justify-center">
             {data.companyLogo ? (
               <img src={data.companyLogo} alt="Logo" className="h-20 w-auto object-contain" />
             ) : (
               <div className="text-center">
-                <div className="text-3xl font-bold tracking-[0.3em] mb-2">CAR RENTAL</div>
+                <div className="text-3xl font-bold tracking-[0.3em] mb-2 text-gray-900">CAR RENTAL</div>
               </div>
             )}
           </div>
           <div className="text-center mt-3">
-            <p className="text-sm font-medium tracking-wide">{data.companyName || 'BREEZE BUSINESS INTEGRATED LLC'}</p>
+            <p className="text-sm font-medium tracking-wide text-gray-800">{data.companyName || 'BREEZE BUSINESS INTEGRATED LLC'}</p>
           </div>
         </div>
 
