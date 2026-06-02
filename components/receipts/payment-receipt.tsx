@@ -1,43 +1,30 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
-import { Printer, Download } from 'lucide-react'
+import { Printer } from 'lucide-react'
 
 export interface PaymentReceiptData {
-  // Company Info
   companyName?: string
   companyLogo?: string
-  
-  // Receipt Details
   receiptNo: string
   receiptDate: string | Date
   branchName?: string
-  
-  // Customer Info
   customerName: string
   customerAddress?: string
   customerPhone?: string
   debitorCode?: string
-  
-  // Payment Details
   paymentMode: string
   currency?: string
-  
-  // Line Items
   items: {
     invoiceNo?: string
     raNo?: string
     vehicleRegNo?: string
     amount: number
   }[]
-  
-  // Total
   totalAmount: number
   amountInWords?: string
-  
-  // Additional Info
   remarks?: string
   chequeNo?: string
   referenceNo?: string
@@ -48,70 +35,22 @@ export interface PaymentReceiptData {
 
 interface Props {
   data: PaymentReceiptData
-  onPrint?: () => void
+  autoPrint?: boolean
 }
 
-// Convert number to words in English
-function numberToWords(num: number): string {
-  const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE',
-    'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN']
-  const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY']
-  const scales = ['', 'THOUSAND', 'MILLION', 'BILLION']
-
-  if (num === 0) return 'ZERO'
-
-  const intPart = Math.floor(num)
-  const decPart = Math.round((num - intPart) * 1000)
-
-  let words = ''
-  let scaleIndex = 0
-
-  let n = intPart
-  while (n > 0) {
-    const chunk = n % 1000
-    if (chunk > 0) {
-      let chunkWords = ''
-      const hundreds = Math.floor(chunk / 100)
-      const remainder = chunk % 100
-
-      if (hundreds > 0) {
-        chunkWords += ones[hundreds] + ' HUNDRED '
-      }
-
-      if (remainder > 0) {
-        if (remainder < 20) {
-          chunkWords += ones[remainder]
-        } else {
-          chunkWords += tens[Math.floor(remainder / 10)]
-          if (remainder % 10 > 0) {
-            chunkWords += ' ' + ones[remainder % 10]
-          }
-        }
-      }
-
-      words = chunkWords.trim() + ' ' + scales[scaleIndex] + ' ' + words
-    }
-    n = Math.floor(n / 1000)
-    scaleIndex++
-  }
-
-  // Add decimal part
-  if (decPart > 0) {
-    words = words.trim() + ' AND ' + decPart + '/1000'
-  }
-
-  return words.trim()
-}
-
-export function PaymentReceipt({ data, onPrint }: Props) {
+export function PaymentReceiptPreview({ data, autoPrint }: Props) {
   const receiptRef = useRef<HTMLDivElement>(null)
 
-  const handlePrint = () => {
-    if (onPrint) {
-      onPrint()
-    } else {
-      window.print()
+  useEffect(() => {
+    if (autoPrint) {
+      setTimeout(() => {
+        window.print()
+      }, 500)
     }
+  }, [autoPrint])
+
+  const handlePrint = () => {
+    window.print()
   }
 
   const formatDate = (date: string | Date) => {
@@ -119,9 +58,6 @@ export function PaymentReceipt({ data, onPrint }: Props) {
     const d = typeof date === 'string' ? new Date(date) : date
     return format(d, 'dd/MM/yyyy')
   }
-
-  const amountInWords = data.amountInWords || 
-    `${numberToWords(data.totalAmount)} ${data.currency || 'OMAN RIYAL'} ONLY`
 
   return (
     <div className="space-y-4">
@@ -173,7 +109,7 @@ export function PaymentReceipt({ data, onPrint }: Props) {
             <div className="text-sm space-y-1 pt-2">
               <p className="font-bold text-lg">{data.customerName}</p>
               {data.customerAddress && (
-                <p className="text-gray-600 text-xs leading-relaxed">{data.customerAddress}</p>
+                <p className="text-gray-600 text-xs leading-relaxed whitespace-pre-line">{data.customerAddress}</p>
               )}
               {data.customerPhone && (
                 <p className="text-gray-600">Tel/Fax: {data.customerPhone}</p>
@@ -271,7 +207,7 @@ export function PaymentReceipt({ data, onPrint }: Props) {
         <div className="px-6 py-3 border-b bg-gray-50">
           <p className="text-sm">
             <span className="font-semibold">Amount In Words: </span>
-            <span className="uppercase">{amountInWords}</span>
+            <span className="uppercase">{data.amountInWords}</span>
           </p>
         </div>
 
@@ -286,42 +222,44 @@ export function PaymentReceipt({ data, onPrint }: Props) {
         )}
 
         {/* Bank & Reference Details */}
-        <div className="p-6 grid grid-cols-2 gap-8 border-b">
-          <table className="text-sm">
-            <tbody>
-              {data.chequeNo && (
-                <tr>
-                  <td className="py-1 font-medium">Cheque / Card No:</td>
-                  <td className="py-1 pl-4">{data.chequeNo}</td>
-                  <td className="py-1 text-right text-gray-500">رقم الشيك</td>
-                </tr>
-              )}
-              {data.bankName && (
-                <tr>
-                  <td className="py-1 font-medium">Bank:</td>
-                  <td className="py-1 pl-4 font-semibold">{data.bankName}</td>
-                  <td className="py-1 text-right text-gray-500">البنك</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          <table className="text-sm">
-            <tbody>
-              {data.referenceNo && (
-                <tr>
-                  <td className="py-1 font-medium">Reference No.:</td>
-                  <td className="py-1 pl-4">{data.referenceNo}</td>
-                </tr>
-              )}
-              {data.referenceDate && (
-                <tr>
-                  <td className="py-1 font-medium">Reference Date:</td>
-                  <td className="py-1 pl-4">{formatDate(data.referenceDate)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {(data.chequeNo || data.bankName || data.referenceNo) && (
+          <div className="p-6 grid grid-cols-2 gap-8 border-b">
+            <table className="text-sm">
+              <tbody>
+                {data.chequeNo && (
+                  <tr>
+                    <td className="py-1 font-medium">Cheque / Card No:</td>
+                    <td className="py-1 pl-4">{data.chequeNo}</td>
+                    <td className="py-1 text-right text-gray-500">رقم الشيك</td>
+                  </tr>
+                )}
+                {data.bankName && (
+                  <tr>
+                    <td className="py-1 font-medium">Bank:</td>
+                    <td className="py-1 pl-4 font-semibold">{data.bankName}</td>
+                    <td className="py-1 text-right text-gray-500">البنك</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <table className="text-sm">
+              <tbody>
+                {data.referenceNo && (
+                  <tr>
+                    <td className="py-1 font-medium">Reference No.:</td>
+                    <td className="py-1 pl-4">{data.referenceNo}</td>
+                  </tr>
+                )}
+                {data.referenceDate && (
+                  <tr>
+                    <td className="py-1 font-medium">Reference Date:</td>
+                    <td className="py-1 pl-4">{formatDate(data.referenceDate)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Received By */}
         {data.receivedBy && (
@@ -344,15 +282,6 @@ export function PaymentReceipt({ data, onPrint }: Props) {
           </p>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Preview/Print wrapper component
-export function PaymentReceiptPreview({ data }: { data: PaymentReceiptData }) {
-  return (
-    <div className="min-h-screen bg-gray-100 p-8 print:p-0 print:bg-white">
-      <PaymentReceipt data={data} />
     </div>
   )
 }

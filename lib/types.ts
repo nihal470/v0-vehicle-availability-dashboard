@@ -149,3 +149,45 @@ export interface FleetStats {
   available: number
   maintenance: number
 }
+
+// Payment types
+export type PaymentMode = 'cash' | 'cheque' | 'bank_transfer' | 'card' | 'online'
+
+export interface Payment {
+  id: string
+  receipt_no: string
+  receipt_date: string
+  branch_name: string | null
+  customer_name: string
+  customer_address: string | null
+  customer_phone: string | null
+  debitor_code: string | null
+  payment_mode: PaymentMode
+  currency: string
+  vehicle_id: string | null
+  booking_id: string | null
+  agreement_no: string | null
+  total_amount: number
+  remarks: string | null
+  cheque_no: string | null
+  reference_no: string | null
+  reference_date: string | null
+  bank_name: string | null
+  received_by: string | null
+  created_at: string
+  updated_at: string
+  vehicle?: Vehicle
+  booking?: VehicleBooking
+  items?: PaymentItem[]
+}
+
+export interface PaymentItem {
+  id: string
+  payment_id: string
+  invoice_no: string | null
+  ra_no: string | null
+  vehicle_reg_no: string | null
+  description: string | null
+  amount: number
+  created_at: string
+}
