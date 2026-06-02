@@ -531,12 +531,12 @@ export function PaymentEntryForm({ vehicles, editPayment }: Props) {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Vehicle</Label>
-                <Select value={form.vehicle_id} onValueChange={(v) => setForm({ ...form, vehicle_id: v })}>
+                <Select value={form.vehicle_id || "none"} onValueChange={(v) => setForm({ ...form, vehicle_id: v === "none" ? "" : v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select vehicle" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {vehicles.map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id}>
                         {vehicle.license_plate} - {vehicle.make} {vehicle.model}
