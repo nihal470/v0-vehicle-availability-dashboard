@@ -75,7 +75,7 @@ export default async function ReceiptPage({
         .eq('payment_id', payment.id)
       
       receiptData = {
-        companyName: 'Elegant Enterprises and Car Services LLC',
+        companyName: 'BREEZE BUSINESS INTEGRATED LLC',
         companyLogo: '/images/company-logo.png',
         receiptNo: payment.receipt_no,
         receiptDate: new Date(payment.receipt_date),
@@ -112,7 +112,7 @@ export default async function ReceiptPage({
   // If no receipt found, show sample
   if (!receiptData) {
     receiptData = {
-      companyName: 'Elegant Enterprises and Car Services LLC',
+      companyName: 'BREEZE BUSINESS INTEGRATED LLC',
       companyLogo: '/images/company-logo.png',
       receiptNo: '99063004',
       receiptDate: new Date(),

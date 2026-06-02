@@ -87,7 +87,7 @@ export function PaymentReceiptPreview({ data, autoPrint }: Props) {
             )}
           </div>
           <div className="text-center mt-3">
-            <p className="text-sm font-medium tracking-wide">{data.companyName || 'Elegant Enterprises and Car Services LLC'}</p>
+            <p className="text-sm font-medium tracking-wide">{data.companyName || 'BREEZE BUSINESS INTEGRATED LLC'}</p>
           </div>
         </div>
 
