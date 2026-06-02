@@ -77,17 +77,27 @@ export function PaymentReceiptPreview({ data, autoPrint }: Props) {
       >
         {/* Header with Logo */}
         <div className="bg-white p-6 border-b">
-          <div className="flex items-center justify-center">
-            {data.companyLogo ? (
-              <img src={data.companyLogo} alt="Logo" className="h-20 w-auto object-contain" />
-            ) : (
-              <div className="text-center">
-                <div className="text-3xl font-bold tracking-[0.3em] mb-2 text-gray-900">CAR RENTAL</div>
-              </div>
-            )}
-          </div>
-          <div className="text-center mt-3">
-            <p className="text-sm font-medium tracking-wide text-gray-800">{data.companyName || 'BREEZE BUSINESS INTEGRATED LLC'}</p>
+          <div className="flex items-start justify-between">
+            {/* Left - Company Details */}
+            <div className="text-xs text-gray-700 space-y-0.5">
+              <p className="font-semibold text-sm text-gray-900">{data.companyName || 'BREEZE BUSINESS INTEGRATED LLC'}</p>
+              <p>CR NO: 1458587</p>
+              <p>VAT TIN: OM1100368236</p>
+              <p>PO BOX: 85, PC: 112</p>
+              <p>Sultanate of Oman</p>
+              <p>Contact: +968 95312345, +968 95081234</p>
+            </div>
+            
+            {/* Right - Logo */}
+            <div className="flex-shrink-0">
+              {data.companyLogo ? (
+                <img src={data.companyLogo} alt="Logo" className="h-16 w-auto object-contain" />
+              ) : (
+                <div className="text-right">
+                  <div className="text-2xl font-bold tracking-[0.2em] text-gray-900">CAR RENTAL</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
