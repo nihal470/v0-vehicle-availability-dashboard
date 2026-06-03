@@ -5,6 +5,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 
+// Disable caching for real-time data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'Payment Receipt | Fleet Management',
 }

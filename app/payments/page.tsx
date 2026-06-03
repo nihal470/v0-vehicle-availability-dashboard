@@ -1,6 +1,10 @@
 import { PaymentsList } from '@/components/payments/payments-list'
 import { Suspense } from 'react'
 
+// Disable caching for real-time data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'Payments',
   description: 'View and manage payment receipts',

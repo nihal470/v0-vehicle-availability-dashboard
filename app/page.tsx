@@ -6,6 +6,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 
+// Disable caching for real-time data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function getFleetData() {
   const supabase = await createClient()
 

@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import type { CategoryWithVehicles, VehicleWithBookings, VehicleBooking } from '@/lib/types'
 
+// Disable caching for real-time data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'Booking Calendar - Fleet Management',
   description: 'View and manage vehicle bookings',

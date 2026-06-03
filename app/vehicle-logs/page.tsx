@@ -8,6 +8,10 @@ import { Car, AlertTriangle, DollarSign, User, Clock, ArrowLeft, TrendingUp, Fil
 import { TripLogs } from '@/components/vehicle-logs/trip-logs'
 import { VehicleFines } from '@/components/vehicle-logs/vehicle-fines'
 
+// Disable caching for real-time data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'Vehicle Log Manager',
   description: 'Track driver usage and manage fines/violations',
