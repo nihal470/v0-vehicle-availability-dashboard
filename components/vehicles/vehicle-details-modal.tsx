@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Vehicle } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -41,6 +41,26 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
     next_service_km: vehicle.next_service_km?.toString() || '',
     next_service_date: vehicle.next_service_date || '',
   })
+
+  // Reset form data when vehicle changes or modal opens
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        make: vehicle.make || '',
+        model: vehicle.model || '',
+        license_plate: vehicle.license_plate || '',
+        ownership_type: vehicle.ownership_type || 'owned',
+        insurance_start_date: vehicle.insurance_start_date || '',
+        insurance_end_date: vehicle.insurance_end_date || '',
+        mulkiya_renewal_date: vehicle.mulkiya_renewal_date || '',
+        last_service_date: vehicle.last_service_date || '',
+        last_service_km: vehicle.last_service_km?.toString() || '',
+        current_km: vehicle.current_km?.toString() || '',
+        next_service_km: vehicle.next_service_km?.toString() || '',
+        next_service_date: vehicle.next_service_date || '',
+      })
+    }
+  }, [vehicle, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Vehicle } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -40,6 +40,22 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
     payment_date: '',
     current_km: vehicle.current_km?.toString() || '',
   })
+
+  // Reset form data when modal opens
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        customer_name: '',
+        return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        ag_no: '',
+        rental_type: 'monthly' as 'daily' | 'monthly',
+        rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        payment_status: 'not_paid' as 'paid' | 'not_paid',
+        payment_date: '',
+        current_km: vehicle.current_km?.toString() || '',
+      })
+    }
+  }, [vehicle, open])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

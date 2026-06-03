@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Vehicle } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -48,6 +48,24 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
     payment_status: 'not_paid' as 'paid' | 'not_paid',
     payment_date: '',
   })
+
+  // Reset form data when vehicle changes or modal opens
+  useEffect(() => {
+    if (open) {
+      const currentReturnDate = vehicle.return_date ? new Date(vehicle.return_date) : new Date()
+      const newStartDate = addDays(currentReturnDate, 1)
+      const newEndDate = addDays(newStartDate, 30)
+      
+      setFormData({
+        new_return_date: format(newEndDate, 'yyyy-MM-dd'),
+        new_renewal_date: format(newEndDate, 'yyyy-MM-dd'),
+        customer_name: vehicle.customer_name || '',
+        ag_no: vehicle.ag_no || '',
+        payment_status: 'not_paid' as 'paid' | 'not_paid',
+        payment_date: '',
+      })
+    }
+  }, [vehicle, open])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
