@@ -222,14 +222,12 @@ export function PaymentReceiptPreview({ data, autoPrint }: Props) {
         </div>
 
         {/* Remarks */}
-        {data.remarks && (
-          <div className="px-6 py-3 border-b">
-            <p className="text-sm">
-              <span className="font-semibold">REMARKS: </span>
-              <span>{data.remarks}</span>
-            </p>
-          </div>
-        )}
+        <div className="px-6 py-3 border-b">
+          <p className="text-sm">
+            <span className="font-semibold">REMARKS / ملاحظات: </span>
+            <span>{data.remarks || '-'}</span>
+          </p>
+        </div>
 
         {/* Bank & Reference Details */}
         {(data.chequeNo || data.bankName || data.referenceNo) && (
