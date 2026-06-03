@@ -207,7 +207,7 @@ export function PaymentEntryForm({ vehicles, editPayment }: Props) {
         if (itemsError) throw itemsError
       }
 
-      router.push(`/payments?created=${receiptNo}`)
+      router.push(editPayment ? `/payments?updated=${receiptNo}` : `/payments?created=${receiptNo}`)
       router.refresh()
     } catch (error) {
       console.error('Error saving payment:', error)
@@ -224,8 +224,8 @@ export function PaymentEntryForm({ vehicles, editPayment }: Props) {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Payment Entry</h1>
-          <p className="text-muted-foreground">Create a new payment receipt</p>
+          <h1 className="text-2xl font-bold">{editPayment ? 'Edit Payment' : 'Payment Entry'}</h1>
+          <p className="text-muted-foreground">{editPayment ? 'Update payment receipt details' : 'Create a new payment receipt'}</p>
         </div>
         <Badge variant="outline" className="text-lg px-4 py-2 font-mono">
           Receipt # {receiptNo}

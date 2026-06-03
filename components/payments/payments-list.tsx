@@ -29,7 +29,9 @@ import {
   Wallet,
   Globe,
   ArrowLeft,
-  RefreshCw
+  RefreshCw,
+  Pencil,
+  Trash2
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Payment, PaymentMode } from '@/lib/types'
@@ -60,14 +62,22 @@ export function PaymentsList() {
   const [searchQuery, setSearchQuery] = useState('')
   const [paymentModeFilter, setPaymentModeFilter] = useState<string>('all')
   const [showCreatedAlert, setShowCreatedAlert] = useState(false)
+  const [showUpdatedAlert, setShowUpdatedAlert] = useState(false)
   const [createdReceiptNo, setCreatedReceiptNo] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     const created = searchParams.get('created')
+    const updated = searchParams.get('updated')
     if (created) {
       setShowCreatedAlert(true)
       setCreatedReceiptNo(created)
       setTimeout(() => setShowCreatedAlert(false), 5000)
+    }
+    if (updated) {
+      setShowUpdatedAlert(true)
+      setCreatedReceiptNo(updated)
+      setTimeout(() => setShowUpdatedAlert(false), 5000)
     }
   }, [searchParams])
 
@@ -90,6 +100,37 @@ export function PaymentsList() {
     fetchPayments()
   }, [])
 
+  const handleDelete = async (payment: Payment) => {
+    if (!confirm(`Are you sure you want to delete receipt #${payment.receipt_no}?\n\nThis action cannot be undone.`)) {
+      return
+    }
+    
+    setDeletingId(payment.id)
+    try {
+      // Delete payment items first
+      await supabase
+        .from('payment_items')
+        .delete()
+        .eq('payment_id', payment.id)
+      
+      // Delete payment
+      const { error } = await supabase
+        .from('payments')
+        .delete()
+        .eq('id', payment.id)
+      
+      if (error) throw error
+      
+      // Refresh list
+      fetchPayments()
+    } catch (error) {
+      console.error('Error deleting payment:', error)
+      alert('Failed to delete payment. Please try again.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch = 
       payment.receipt_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -105,12 +146,25 @@ export function PaymentsList() {
 
   return (
     <div className="space-y-6">
-      {/* Success Alert */}
+      {/* Success Alert - Created */}
       {showCreatedAlert && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-center justify-between">
           <span>Payment receipt #{createdReceiptNo} created successfully!</span>
           <Link href={`/receipt?receiptNo=${createdReceiptNo}`}>
             <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-300">
+              <Printer className="h-4 w-4 mr-1" />
+              Print Receipt
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Success Alert - Updated */}
+      {showUpdatedAlert && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>Payment receipt #{createdReceiptNo} updated successfully!</span>
+          <Link href={`/receipt?receiptNo=${createdReceiptNo}`}>
+            <Button size="sm" variant="outline" className="text-blue-700 border-blue-300">
               <Printer className="h-4 w-4 mr-1" />
               Print Receipt
             </Button>
@@ -275,15 +329,30 @@ export function PaymentsList() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Link href={`/receipt?receiptNo=${payment.receipt_no}`}>
-                          <Button size="sm" variant="ghost">
+                          <Button size="sm" variant="ghost" title="View Receipt">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
                         <Link href={`/receipt?receiptNo=${payment.receipt_no}&print=true`}>
-                          <Button size="sm" variant="ghost">
+                          <Button size="sm" variant="ghost" title="Print Receipt">
                             <Printer className="h-4 w-4" />
                           </Button>
                         </Link>
+                        <Link href={`/payments/edit/${payment.id}`}>
+                          <Button size="sm" variant="ghost" title="Edit Payment">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          title="Delete Payment"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(payment)}
+                          disabled={deletingId === payment.id}
+                        >
+                          <Trash2 className={`h-4 w-4 ${deletingId === payment.id ? 'animate-spin' : ''}`} />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
