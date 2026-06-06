@@ -17,16 +17,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { PlayCircle, Car, MapPin, Plus, Check, X } from 'lucide-react'
+import { PlayCircle, Car, MapPin, Plus, Check, X, Pencil } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Props {
   vehicle: Vehicle
   open: boolean
   onOpenChange: (open: boolean) => void
+  mode?: 'start' | 'edit'
 }
 
-export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
+export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start' }: Props) {
+  const isEdit = mode === 'edit'
   const router = useRouter()
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
@@ -91,22 +93,23 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
     if (open) {
       setShowAddLocation(false)
       setNewLocationName('')
+      const defaultReturn = format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
       setFormData({
-        customer_name: '',
-        start_date: format(new Date(), 'yyyy-MM-dd'),
-        return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-        return_time: '',
+        customer_name: isEdit ? (vehicle.customer_name || '') : '',
+        start_date: isEdit ? (vehicle.start_date || format(new Date(), 'yyyy-MM-dd')) : format(new Date(), 'yyyy-MM-dd'),
+        return_date: isEdit ? (vehicle.return_date || defaultReturn) : defaultReturn,
+        return_time: isEdit ? (vehicle.return_time || '') : '',
         location_id: vehicle.location_id || '',
-        expected_return_location: '',
-        ag_no: '',
-        rental_type: 'monthly' as 'daily' | 'monthly',
-        rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-        payment_status: 'not_paid' as 'paid' | 'not_paid',
-        payment_date: '',
+        expected_return_location: isEdit ? (vehicle.expected_return_location || '') : '',
+        ag_no: isEdit ? (vehicle.ag_no || '') : '',
+        rental_type: isEdit ? ((vehicle.rental_type as 'daily' | 'monthly') || 'monthly') : 'monthly',
+        rental_renewal_date: isEdit ? (vehicle.rental_renewal_date || defaultReturn) : defaultReturn,
+        payment_status: isEdit ? ((vehicle.payment_status as 'paid' | 'not_paid') || 'not_paid') : 'not_paid',
+        payment_date: isEdit ? (vehicle.payment_date || '') : '',
         current_km: vehicle.current_km?.toString() || '',
       })
     }
-  }, [vehicle, open])
+  }, [vehicle, open, isEdit])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -123,7 +126,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
       const { error } = await supabase
         .from('vehicles')
         .update({
-          status: 'running',
+          status: isEdit ? vehicle.status : 'running',
           customer_name: formData.customer_name.trim(),
           start_date: formData.start_date || null,
           return_date: formData.return_date || null,
@@ -145,8 +148,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
       onOpenChange(false)
       router.refresh()
     } catch (error) {
-      console.error('Error starting agreement:', error)
-      alert('Failed to start agreement. Please try again.')
+      console.error('Error saving agreement:', error)
+      alert('Failed to save agreement. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -157,11 +160,17 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <PlayCircle className="h-5 w-5 text-emerald-600" />
-            Start Agreement
+            {isEdit ? (
+              <Pencil className="h-5 w-5 text-blue-600" />
+            ) : (
+              <PlayCircle className="h-5 w-5 text-emerald-600" />
+            )}
+            {isEdit ? 'Edit Agreement' : 'Start Agreement'}
           </DialogTitle>
           <DialogDescription>
-            Assign a customer to this vehicle and start the rental agreement.
+            {isEdit
+              ? 'Update the rental agreement details for this vehicle.'
+              : 'Assign a customer to this vehicle and start the rental agreement.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -412,9 +421,11 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
           <Button 
             onClick={handleStartAgreement} 
             disabled={isLoading || !formData.customer_name.trim()}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className={isEdit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'}
           >
-            {isLoading ? 'Starting...' : 'Start Agreement'}
+            {isLoading 
+              ? (isEdit ? 'Saving...' : 'Starting...') 
+              : (isEdit ? 'Save Changes' : 'Start Agreement')}
           </Button>
         </DialogFooter>
       </DialogContent>

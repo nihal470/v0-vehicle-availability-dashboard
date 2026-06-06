@@ -185,6 +185,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToClose, setVehicleToClose] = useState<Vehicle | null>(null)
   const [showStartModal, setShowStartModal] = useState(false)
   const [vehicleToStart, setVehicleToStart] = useState<Vehicle | null>(null)
+  const [showEditAgreementModal, setShowEditAgreementModal] = useState(false)
+  const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -696,6 +698,18 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                className="text-indigo-600 border-indigo-600 hover:bg-indigo-50"
+                                onClick={() => {
+                                  setVehicleToEditAgreement(vehicle)
+                                  setShowEditAgreementModal(true)
+                                }}
+                              >
+                                <FileText className="h-4 w-4 mr-1" />
+                                Edit Agreement
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
                                 className="text-blue-600 border-blue-600 hover:bg-blue-50"
                                 onClick={() => {
                                   setVehicleForPayment(vehicle)
@@ -795,6 +809,16 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToStart}
           open={showStartModal}
           onOpenChange={setShowStartModal}
+        />
+      )}
+
+      {/* Edit Agreement Modal */}
+      {vehicleToEditAgreement && (
+        <StartAgreementModal
+          vehicle={vehicleToEditAgreement}
+          open={showEditAgreementModal}
+          onOpenChange={setShowEditAgreementModal}
+          mode="edit"
         />
       )}
 
