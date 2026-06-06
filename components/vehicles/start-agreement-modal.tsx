@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { PlayCircle, Car, MapPin } from 'lucide-react'
+import { PlayCircle, Car, MapPin, Plus, Check, X } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Props {
@@ -31,6 +31,9 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
   const [locations, setLocations] = useState<Location[]>([])
+  const [showAddLocation, setShowAddLocation] = useState(false)
+  const [newLocationName, setNewLocationName] = useState('')
+  const [isAddingLocation, setIsAddingLocation] = useState(false)
   const [formData, setFormData] = useState({
     customer_name: '',
     return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -54,9 +57,39 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
     if (open) fetchLocations()
   }, [open, supabase])
 
+  const handleAddLocation = async () => {
+    const name = newLocationName.trim()
+    if (!name) return
+    setIsAddingLocation(true)
+    try {
+      const { data, error } = await supabase
+        .from('locations')
+        .insert({ name })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      if (data) {
+        setLocations((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
+        // Auto-select the newly created location for current location
+        setFormData((prev) => ({ ...prev, location_id: data.id }))
+      }
+      setNewLocationName('')
+      setShowAddLocation(false)
+    } catch (error) {
+      console.error('Error adding location:', error)
+      alert('Failed to add location. It may already exist.')
+    } finally {
+      setIsAddingLocation(false)
+    }
+  }
+
   // Reset form data when modal opens
   useEffect(() => {
     if (open) {
+      setShowAddLocation(false)
+      setNewLocationName('')
       setFormData({
         customer_name: '',
         return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -169,25 +202,75 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
 
           {/* Current Location */}
           <div className="space-y-2">
-            <Label htmlFor="location_id" className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-              Current Location
-            </Label>
-            <Select
-              value={formData.location_id}
-              onValueChange={(value) => handleInputChange('location_id', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select current location" />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((loc) => (
-                  <SelectItem key={loc.id} value={loc.id}>
-                    {loc.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="location_id" className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                Current Location
+              </Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-primary hover:text-primary"
+                onClick={() => setShowAddLocation((v) => !v)}
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Add Location
+              </Button>
+            </div>
+            {showAddLocation ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  autoFocus
+                  placeholder="New location name"
+                  value={newLocationName}
+                  onChange={(e) => setNewLocationName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddLocation()
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  className="shrink-0 bg-emerald-600 hover:bg-emerald-700"
+                  disabled={isAddingLocation || !newLocationName.trim()}
+                  onClick={handleAddLocation}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={() => {
+                    setShowAddLocation(false)
+                    setNewLocationName('')
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Select
+                value={formData.location_id}
+                onValueChange={(value) => handleInputChange('location_id', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select current location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Return Date & Time */}
