@@ -46,6 +46,11 @@ export function ReturnsSummary() {
       const now = new Date()
       const returnSchedules: ReturnSchedule[] = vehicles.map((vehicle: Vehicle) => {
         const returnDate = new Date(vehicle.return_date!)
+        // Apply expected return time if available
+        if (vehicle.return_time) {
+          const [h, m] = vehicle.return_time.split(':')
+          returnDate.setHours(Number(h) || 0, Number(m) || 0, 0, 0)
+        }
         const hoursRemaining = differenceInHours(returnDate, now)
         const daysRemaining = differenceInDays(returnDate, now)
         
@@ -263,7 +268,12 @@ export function ReturnsSummary() {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-sm font-medium">{format(schedule.returnDate, 'dd MMM')}</p>
-                    <p className="text-xs text-muted-foreground">{format(schedule.returnDate, 'HH:mm')}</p>
+                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                      <Clock className="h-3 w-3" />
+                      {schedule.vehicle.return_time 
+                        ? format(schedule.returnDate, 'hh:mm a') 
+                        : 'No time set'}
+                    </p>
                   </div>
                   {getStatusBadge(schedule.status)}
                 </div>
