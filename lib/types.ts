@@ -40,6 +40,7 @@ export interface Vehicle {
   customer_name: string | null
   return_date: string | null
   return_time: string | null
+  expected_return_location: string | null
   ag_no: string | null
   rental_type: 'daily' | 'monthly' | null
   rental_renewal_date: string | null

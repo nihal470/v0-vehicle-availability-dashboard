@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Vehicle } from '@/lib/types'
+import { Vehicle, Location } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import {
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { PlayCircle, Car } from 'lucide-react'
+import { PlayCircle, Car, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Props {
@@ -30,10 +30,13 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
+  const [locations, setLocations] = useState<Location[]>([])
   const [formData, setFormData] = useState({
     customer_name: '',
     return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     return_time: '',
+    location_id: vehicle.location_id || '',
+    expected_return_location: '',
     ag_no: '',
     rental_type: 'monthly' as 'daily' | 'monthly',
     rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -42,6 +45,15 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
     current_km: vehicle.current_km?.toString() || '',
   })
 
+  // Fetch locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const { data } = await supabase.from('locations').select('*').order('name')
+      if (data) setLocations(data)
+    }
+    if (open) fetchLocations()
+  }, [open, supabase])
+
   // Reset form data when modal opens
   useEffect(() => {
     if (open) {
@@ -49,6 +61,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
         customer_name: '',
         return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
         return_time: '',
+        location_id: vehicle.location_id || '',
+        expected_return_location: '',
         ag_no: '',
         rental_type: 'monthly' as 'daily' | 'monthly',
         rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -78,6 +92,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
           customer_name: formData.customer_name.trim(),
           return_date: formData.return_date || null,
           return_time: formData.return_time || null,
+          location_id: formData.location_id || null,
+          expected_return_location: formData.expected_return_location.trim() || null,
           ag_no: formData.ag_no.trim() || null,
           rental_type: formData.rental_type,
           rental_renewal_date: formData.rental_renewal_date || null,
@@ -151,6 +167,29 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
             />
           </div>
 
+          {/* Current Location */}
+          <div className="space-y-2">
+            <Label htmlFor="location_id" className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+              Current Location
+            </Label>
+            <Select
+              value={formData.location_id}
+              onValueChange={(value) => handleInputChange('location_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select current location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Return Date & Time */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -171,6 +210,29 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
                 onChange={(e) => handleInputChange('return_time', e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Expected Return Location */}
+          <div className="space-y-2">
+            <Label htmlFor="expected_return_location" className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+              Expected Return Location
+            </Label>
+            <Select
+              value={formData.expected_return_location}
+              onValueChange={(value) => handleInputChange('expected_return_location', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select expected return location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.name}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Rental Type & Renewal Date */}
