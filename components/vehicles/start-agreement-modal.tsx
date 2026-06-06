@@ -164,7 +164,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEdit ? (
@@ -462,14 +462,14 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button 
             onClick={handleStartAgreement} 
             disabled={isLoading || !formData.customer_name.trim()}
-            className={isEdit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'}
+            className={`w-full sm:w-auto ${isEdit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
           >
             {isLoading 
               ? (isEdit ? 'Saving...' : 'Starting...') 
