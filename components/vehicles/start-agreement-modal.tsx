@@ -33,6 +33,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
   const [formData, setFormData] = useState({
     customer_name: '',
     return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    return_time: '',
     ag_no: '',
     rental_type: 'monthly' as 'daily' | 'monthly',
     rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -47,6 +48,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
       setFormData({
         customer_name: '',
         return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        return_time: '',
         ag_no: '',
         rental_type: 'monthly' as 'daily' | 'monthly',
         rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -75,6 +77,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
           status: 'running',
           customer_name: formData.customer_name.trim(),
           return_date: formData.return_date || null,
+          return_time: formData.return_time || null,
           ag_no: formData.ag_no.trim() || null,
           rental_type: formData.rental_type,
           rental_renewal_date: formData.rental_renewal_date || null,
@@ -148,15 +151,26 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
             />
           </div>
 
-          {/* Return Date */}
-          <div className="space-y-2">
-            <Label htmlFor="return_date">Expected Return Date</Label>
-            <Input
-              id="return_date"
-              type="date"
-              value={formData.return_date}
-              onChange={(e) => handleInputChange('return_date', e.target.value)}
-            />
+          {/* Return Date & Time */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="return_date">Expected Return Date</Label>
+              <Input
+                id="return_date"
+                type="date"
+                value={formData.return_date}
+                onChange={(e) => handleInputChange('return_date', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="return_time">Expected Return Time</Label>
+              <Input
+                id="return_time"
+                type="time"
+                value={formData.return_time}
+                onChange={(e) => handleInputChange('return_time', e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Rental Type & Renewal Date */}
