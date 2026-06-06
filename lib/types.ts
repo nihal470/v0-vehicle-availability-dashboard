@@ -70,6 +70,7 @@ export interface TripLog {
   id: string
   vehicle_id: string
   trip_date: string
+  trip_end_date: string | null
   driver_name: string
   time_out: string
   time_in: string | null

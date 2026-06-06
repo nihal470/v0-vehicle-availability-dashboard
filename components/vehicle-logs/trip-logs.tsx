@@ -40,6 +40,7 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
   const [formData, setFormData] = useState({
     vehicle_id: '',
     trip_date: format(new Date(), 'yyyy-MM-dd'),
+    trip_end_date: '',
     driver_name: '',
     time_out: '',
     time_in: '',
@@ -53,6 +54,7 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
     setFormData({
       vehicle_id: '',
       trip_date: format(new Date(), 'yyyy-MM-dd'),
+      trip_end_date: '',
       driver_name: '',
       time_out: '',
       time_in: '',
@@ -75,11 +77,18 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
       return
     }
 
+    // Validate trip_end_date is not before trip_date
+    if (formData.trip_end_date && formData.trip_end_date < formData.trip_date) {
+      alert('Trip End Date cannot be earlier than Trip Date')
+      return
+    }
+
     setIsLoading(true)
     try {
       const { error } = await supabase.from('trip_logs').insert({
         vehicle_id: formData.vehicle_id,
         trip_date: formData.trip_date,
+        trip_end_date: formData.trip_end_date || null,
         driver_name: formData.driver_name.trim(),
         time_out: formData.time_out,
         time_in: formData.time_in || null,
@@ -110,6 +119,11 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
       return
     }
 
+    if (formData.trip_end_date && formData.trip_end_date < formData.trip_date) {
+      alert('Trip End Date cannot be earlier than Trip Date')
+      return
+    }
+
     setIsLoading(true)
     try {
       const { error } = await supabase
@@ -117,6 +131,7 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
         .update({
           vehicle_id: formData.vehicle_id,
           trip_date: formData.trip_date,
+          trip_end_date: formData.trip_end_date || null,
           driver_name: formData.driver_name.trim(),
           time_out: formData.time_out,
           time_in: formData.time_in || null,
@@ -160,6 +175,7 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
     setFormData({
       vehicle_id: log.vehicle_id,
       trip_date: log.trip_date,
+      trip_end_date: log.trip_end_date || '',
       driver_name: log.driver_name,
       time_out: log.time_out,
       time_in: log.time_in || '',
@@ -271,7 +287,14 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                          {format(new Date(log.trip_date), 'dd-MMM-yy')}
+                          <div className="flex flex-col">
+                            <span>{format(new Date(log.trip_date), 'dd-MMM-yy')}</span>
+                            {log.trip_end_date && log.trip_end_date !== log.trip_date && (
+                              <span className="text-xs text-muted-foreground">
+                                to {format(new Date(log.trip_end_date), 'dd-MMM-yy')}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -378,6 +401,16 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
                   onChange={(e) => setFormData(p => ({ ...p, trip_date: e.target.value }))}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trip End Date</Label>
+              <Input
+                type="date"
+                value={formData.trip_end_date}
+                min={formData.trip_date}
+                onChange={(e) => setFormData(p => ({ ...p, trip_end_date: e.target.value }))}
+              />
             </div>
             
             <div className="space-y-2">
@@ -497,6 +530,16 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
                   onChange={(e) => setFormData(p => ({ ...p, trip_date: e.target.value }))}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trip End Date</Label>
+              <Input
+                type="date"
+                value={formData.trip_end_date}
+                min={formData.trip_date}
+                onChange={(e) => setFormData(p => ({ ...p, trip_end_date: e.target.value }))}
+              />
             </div>
             
             <div className="space-y-2">
