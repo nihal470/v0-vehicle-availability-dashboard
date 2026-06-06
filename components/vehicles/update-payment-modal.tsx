@@ -257,7 +257,7 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
           {/* Total Rent & Amount Paid */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="total_rent">Total Rent (AED)</Label>
+              <Label htmlFor="total_rent">Total Rent (OMR)</Label>
               <Input
                 id="total_rent"
                 type="number"
@@ -269,7 +269,7 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amount_paid">Amount Paid (AED)</Label>
+              <Label htmlFor="amount_paid">Amount Paid (OMR)</Label>
               <Input
                 id="amount_paid"
                 type="number"
@@ -291,7 +291,7 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
                   ? 'text-red-600'
                   : 'text-emerald-600'
               }`}>
-                AED {(parseFloat(formData.total_rent || '0') - parseFloat(formData.amount_paid || '0')).toFixed(2)}
+                OMR {(parseFloat(formData.total_rent || '0') - parseFloat(formData.amount_paid || '0')).toFixed(2)}
               </span>
             </div>
           )}
