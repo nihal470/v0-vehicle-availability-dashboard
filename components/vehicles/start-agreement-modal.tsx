@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TimeSelect } from '@/components/ui/time-select'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
@@ -315,11 +316,10 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
             </div>
             <div className="space-y-2">
               <Label htmlFor="return_time">Expected Return Time</Label>
-              <Input
+              <TimeSelect
                 id="return_time"
-                type="time"
                 value={formData.return_time}
-                onChange={(e) => handleInputChange('return_time', e.target.value)}
+                onChange={(value) => handleInputChange('return_time', value)}
               />
             </div>
           </div>

@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TimeSelect } from '@/components/ui/time-select'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -525,12 +526,11 @@ export function VehicleFines({ initialFines, vehicles, tripLogs }: VehicleFinesP
               </div>
               <div className="space-y-2">
                 <Label>Fine Time</Label>
-                <Input
-                  type="time"
+                <TimeSelect
                   value={formData.fine_time}
-                  onChange={(e) => {
-                    setFormData(p => ({ ...p, fine_time: e.target.value }))
-                    findMatchingDriver(formData.vehicle_id, formData.fine_date, e.target.value)
+                  onChange={(value) => {
+                    setFormData(p => ({ ...p, fine_time: value }))
+                    findMatchingDriver(formData.vehicle_id, formData.fine_date, value)
                   }}
                 />
               </div>
@@ -691,10 +691,9 @@ export function VehicleFines({ initialFines, vehicles, tripLogs }: VehicleFinesP
               </div>
               <div className="space-y-2">
                 <Label>Fine Time</Label>
-                <Input
-                  type="time"
+                <TimeSelect
                   value={formData.fine_time}
-                  onChange={(e) => setFormData(p => ({ ...p, fine_time: e.target.value }))}
+                  onChange={(value) => setFormData(p => ({ ...p, fine_time: value }))}
                 />
               </div>
             </div>

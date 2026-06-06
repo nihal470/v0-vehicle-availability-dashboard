@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { TimeSelect } from '@/components/ui/time-select'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -898,11 +899,10 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="pickup_time">Pickup Time</Label>
-                        <Input
+                        <TimeSelect
                           id="pickup_time"
-                          type="time"
                           value={bookingForm.pickup_time}
-                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_time: e.target.value }))}
+                          onChange={(value) => setBookingForm(prev => ({ ...prev, pickup_time: value }))}
                         />
                       </div>
                     </div>
@@ -944,11 +944,10 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="dropoff_time">Drop-off Time</Label>
-                        <Input
+                        <TimeSelect
                           id="dropoff_time"
-                          type="time"
                           value={bookingForm.dropoff_time}
-                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_time: e.target.value }))}
+                          onChange={(value) => setBookingForm(prev => ({ ...prev, dropoff_time: value }))}
                         />
                       </div>
                     </div>
@@ -1020,10 +1019,9 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                       </div>
                       <div className="space-y-2">
                         <Label>Pickup Time</Label>
-                        <Input
-                          type="time"
+                        <TimeSelect
                           value={bookingForm.pickup_time}
-                          onChange={(e) => setBookingForm(prev => ({ ...prev, pickup_time: e.target.value }))}
+                          onChange={(value) => setBookingForm(prev => ({ ...prev, pickup_time: value }))}
                         />
                       </div>
                     </div>
@@ -1062,10 +1060,9 @@ export function BookingCalendar({ categories, locations = [] }: BookingCalendarP
                       </div>
                       <div className="space-y-2">
                         <Label>Drop-off Time</Label>
-                        <Input
-                          type="time"
+                        <TimeSelect
                           value={bookingForm.dropoff_time}
-                          onChange={(e) => setBookingForm(prev => ({ ...prev, dropoff_time: e.target.value }))}
+                          onChange={(value) => setBookingForm(prev => ({ ...prev, dropoff_time: value }))}
                         />
                       </div>
                     </div>

@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TimeSelect } from '@/components/ui/time-select'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -429,18 +430,16 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Time Out *</Label>
-                <Input
-                  type="time"
+                <TimeSelect
                   value={formData.time_out}
-                  onChange={(e) => setFormData(p => ({ ...p, time_out: e.target.value }))}
+                  onChange={(value) => setFormData(p => ({ ...p, time_out: value }))}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Time In</Label>
-                <Input
-                  type="time"
+                <TimeSelect
                   value={formData.time_in}
-                  onChange={(e) => setFormData(p => ({ ...p, time_in: e.target.value }))}
+                  onChange={(value) => setFormData(p => ({ ...p, time_in: value }))}
                 />
               </div>
             </div>
@@ -554,18 +553,16 @@ export function TripLogs({ initialLogs, vehicles }: TripLogsProps) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Time Out *</Label>
-                <Input
-                  type="time"
+                <TimeSelect
                   value={formData.time_out}
-                  onChange={(e) => setFormData(p => ({ ...p, time_out: e.target.value }))}
+                  onChange={(value) => setFormData(p => ({ ...p, time_out: value }))}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Time In</Label>
-                <Input
-                  type="time"
+                <TimeSelect
                   value={formData.time_in}
-                  onChange={(e) => setFormData(p => ({ ...p, time_in: e.target.value }))}
+                  onChange={(value) => setFormData(p => ({ ...p, time_in: value }))}
                 />
               </div>
             </div>
