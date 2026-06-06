@@ -15,7 +15,8 @@ import {
   Car, 
   ArrowRight,
   RefreshCw,
-  User
+  User,
+  MapPin
 } from 'lucide-react'
 
 interface ReturnSchedule {
@@ -263,6 +264,12 @@ export function ReturnsSummary() {
                       <User className="h-3 w-3" />
                       <span>{schedule.vehicle.customer_name}</span>
                     </div>
+                    {schedule.vehicle.expected_return_location && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                        <MapPin className="h-3 w-3" />
+                        <span>Return to: {schedule.vehicle.expected_return_location}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
