@@ -529,8 +529,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
                   <th className="p-3 text-left text-sm font-medium">Renewal Date</th>
                   <th className="p-3 text-left text-sm font-medium">Payment</th>
-                  <th className="p-3 text-left text-sm font-medium">Insurance Expiry</th>
-                  <th className="p-3 text-left text-sm font-medium">Mulkiya Renewal</th>
                   <th className="p-3 text-left text-sm font-medium">Current KM</th>
                   <th className="p-3 text-left text-sm font-medium">Alert Status</th>
                   <th className="p-3 text-left text-sm font-medium">Actions</th>
@@ -542,12 +540,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   const hasCritical = vehicleAlerts.some(a => a.severity === 'critical')
                   const hasWarning = vehicleAlerts.some(a => a.severity === 'warning')
                   
-                  const insuranceDays = vehicle.insurance_end_date 
-                    ? differenceInDays(new Date(vehicle.insurance_end_date), new Date()) 
-                    : null
-                  const mulkiyaDays = vehicle.mulkiya_renewal_date 
-                    ? differenceInDays(new Date(vehicle.mulkiya_renewal_date), new Date()) 
-                    : null
                   const kmRemaining = vehicle.current_km && vehicle.next_service_km 
                     ? vehicle.next_service_km - vehicle.current_km 
                     : null
@@ -659,36 +651,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           <div className="text-xs text-muted-foreground mt-1">
                             {format(new Date(vehicle.payment_date), 'dd-MMM-yy')}
                           </div>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.insurance_end_date ? (
-                          <div className={insuranceDays !== null && insuranceDays <= 30 
-                            ? insuranceDays <= 7 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
-                            : ''
-                          }>
-                            {format(new Date(vehicle.insurance_end_date), 'MMM dd, yyyy')}
-                            {insuranceDays !== null && insuranceDays <= 30 && (
-                              <div className="text-xs">({insuranceDays} days)</div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Not set</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.mulkiya_renewal_date ? (
-                          <div className={mulkiyaDays !== null && mulkiyaDays <= 30 
-                            ? mulkiyaDays <= 7 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
-                            : ''
-                          }>
-                            {format(new Date(vehicle.mulkiya_renewal_date), 'MMM dd, yyyy')}
-                            {mulkiyaDays !== null && mulkiyaDays <= 30 && (
-                              <div className="text-xs">({mulkiyaDays} days)</div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Not set</span>
                         )}
                       </td>
                       <td className="p-3">

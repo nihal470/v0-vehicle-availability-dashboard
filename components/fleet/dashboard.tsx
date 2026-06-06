@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { StatsCards } from './stats-cards'
 import { ReturnsSummary } from './returns-summary'
+import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, FileText, ChevronRight, Info, Receipt } from 'lucide-react'
@@ -81,6 +82,9 @@ export function Dashboard({
           onStatusChange={setSelectedStatus}
         />
       </div>
+
+      {/* Document Expiry Section */}
+      <DocumentExpiry />
     </div>
   )
 }
