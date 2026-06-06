@@ -48,6 +48,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
     rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     payment_status: 'not_paid' as 'paid' | 'not_paid',
     payment_date: '',
+    total_rent: '',
+    amount_paid: '',
     current_km: vehicle.current_km?.toString() || '',
   })
 
@@ -106,6 +108,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
         rental_renewal_date: isEdit ? (vehicle.rental_renewal_date || defaultReturn) : defaultReturn,
         payment_status: isEdit ? ((vehicle.payment_status as 'paid' | 'not_paid') || 'not_paid') : 'not_paid',
         payment_date: isEdit ? (vehicle.payment_date || '') : '',
+        total_rent: isEdit ? (vehicle.total_rent?.toString() || '') : '',
+        amount_paid: isEdit ? (vehicle.amount_paid?.toString() || '') : '',
         current_km: vehicle.current_km?.toString() || '',
       })
     }
@@ -138,6 +142,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
           rental_renewal_date: formData.rental_renewal_date || null,
           payment_status: formData.payment_status,
           payment_date: formData.payment_date || null,
+          total_rent: formData.total_rent ? parseFloat(formData.total_rent) : null,
+          amount_paid: formData.amount_paid ? parseFloat(formData.amount_paid) : null,
           current_km: formData.current_km ? parseInt(formData.current_km) : vehicle.current_km,
           updated_at: new Date().toISOString(),
         })
@@ -400,6 +406,48 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
               />
             </div>
           </div>
+
+          {/* Total Rent & Amount Paid */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="total_rent">Total Rent (AED)</Label>
+              <Input
+                id="total_rent"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.total_rent}
+                onChange={(e) => handleInputChange('total_rent', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="amount_paid">Amount Paid (AED)</Label>
+              <Input
+                id="amount_paid"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.amount_paid}
+                onChange={(e) => handleInputChange('amount_paid', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Balance Due */}
+          {(formData.total_rent || formData.amount_paid) && (
+            <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2.5">
+              <span className="text-sm font-medium text-muted-foreground">Balance Due</span>
+              <span className={`text-sm font-semibold ${
+                (parseFloat(formData.total_rent || '0') - parseFloat(formData.amount_paid || '0')) > 0
+                  ? 'text-red-600'
+                  : 'text-emerald-600'
+              }`}>
+                AED {(parseFloat(formData.total_rent || '0') - parseFloat(formData.amount_paid || '0')).toFixed(2)}
+              </span>
+            </div>
+          )}
 
           {/* Current KM */}
           <div className="space-y-2">

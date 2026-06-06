@@ -47,6 +47,8 @@ export interface Vehicle {
   rental_renewal_date: string | null
   payment_status: 'paid' | 'not_paid' | null
   payment_date: string | null
+  total_rent: number | null
+  amount_paid: number | null
   // Ownership
   ownership_type: 'owned' | 'leased' | null
   // Parked location for idle vehicles
