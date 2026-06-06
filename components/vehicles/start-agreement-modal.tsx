@@ -36,6 +36,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
   const [isAddingLocation, setIsAddingLocation] = useState(false)
   const [formData, setFormData] = useState({
     customer_name: '',
+    start_date: format(new Date(), 'yyyy-MM-dd'),
     return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     return_time: '',
     location_id: vehicle.location_id || '',
@@ -92,6 +93,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
       setNewLocationName('')
       setFormData({
         customer_name: '',
+        start_date: format(new Date(), 'yyyy-MM-dd'),
         return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
         return_time: '',
         location_id: vehicle.location_id || '',
@@ -123,6 +125,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
         .update({
           status: 'running',
           customer_name: formData.customer_name.trim(),
+          start_date: formData.start_date || null,
           return_date: formData.return_date || null,
           return_time: formData.return_time || null,
           location_id: formData.location_id || null,
@@ -271,6 +274,17 @@ export function StartAgreementModal({ vehicle, open, onOpenChange }: Props) {
                 </SelectContent>
               </Select>
             )}
+          </div>
+
+          {/* Start Date */}
+          <div className="space-y-2">
+            <Label htmlFor="start_date">Agreement Start Date</Label>
+            <Input
+              id="start_date"
+              type="date"
+              value={formData.start_date}
+              onChange={(e) => handleInputChange('start_date', e.target.value)}
+            />
           </div>
 
           {/* Return Date & Time */}

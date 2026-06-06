@@ -38,6 +38,7 @@ export interface Vehicle {
   next_service_date: string | null
   // Rental fields
   customer_name: string | null
+  start_date: string | null
   return_date: string | null
   return_time: string | null
   expected_return_location: string | null

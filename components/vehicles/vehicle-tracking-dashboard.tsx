@@ -522,8 +522,9 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">Own/Lease</th>
                   <th className="p-3 text-left text-sm font-medium">Status</th>
                   <th className="p-3 text-left text-sm font-medium">Parked Location</th>
-                  <th className="p-3 text-left text-sm font-medium">Customer Name</th>
-                  <th className="p-3 text-left text-sm font-medium">Return Date</th>
+                      <th className="p-3 text-left text-sm font-medium">Customer Name</th>
+                      <th className="p-3 text-left text-sm font-medium">Start Date</th>
+                      <th className="p-3 text-left text-sm font-medium">Return Date</th>
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
                   <th className="p-3 text-left text-sm font-medium">Renewal Date</th>
@@ -607,6 +608,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       <td className="p-3">
                         {vehicle.customer_name ? (
                           <span className="font-medium">{vehicle.customer_name}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {vehicle.start_date ? (
+                          <span>{format(new Date(vehicle.start_date), 'dd-MMM-yy')}</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
