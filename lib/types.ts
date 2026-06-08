@@ -54,6 +54,12 @@ export interface Vehicle {
   // Parked location for idle vehicles
   parked_location: 'car_wash' | 'airport' | 'office_front' | 'custom' | null
   parked_location_custom: string | null
+  // Replacement vehicle (for service)
+  replacement_vehicle_id: string | null
+  replacement_type: 'temporary' | 'permanent' | null
+  replacement_notes: string | null
+  replacement_date: string | null
+  replacement_vehicle?: Vehicle | null
   category?: VehicleCategory
   location?: Location
 }

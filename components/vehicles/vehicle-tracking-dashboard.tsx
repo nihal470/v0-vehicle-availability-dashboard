@@ -32,13 +32,15 @@ import {
   LogOut,
   Archive,
   Eye,
-  EyeOff
+  EyeOff,
+  Replace
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
+import { ReplacementVehicleModal } from './replacement-vehicle-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
 import { BulkUpdateModal } from './bulk-update-modal'
 import { differenceInDays, format } from 'date-fns'
@@ -189,6 +191,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
+  const [showReplacementModal, setShowReplacementModal] = useState(false)
+  const [vehicleToReplace, setVehicleToReplace] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
@@ -601,7 +605,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       </td>
                       <td className="p-3">
                         {vehicle.customer_name ? (
-                          <span className="font-medium">{vehicle.customer_name}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium">{vehicle.customer_name}</span>
+                            {vehicle.replacement_type === 'temporary' && vehicle.replacement_vehicle_id && (
+                              <Badge variant="outline" className="w-fit gap-1 border-orange-300 text-orange-700 bg-orange-50">
+                                <Replace className="h-3 w-3" />
+                                Temp: {vehicles.find(v => v.id === vehicle.replacement_vehicle_id)?.license_plate ?? 'assigned'}
+                              </Badge>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -722,6 +734,18 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                                onClick={() => {
+                                  setVehicleToReplace(vehicle)
+                                  setShowReplacementModal(true)
+                                }}
+                              >
+                                <Replace className="h-4 w-4 mr-1" />
+                                Replacement
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
                                 className="text-amber-600 border-amber-600 hover:bg-amber-50"
                                 onClick={() => {
                                   setVehicleToClose(vehicle)
@@ -828,6 +852,16 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToMove}
           open={showMoveModal}
           onOpenChange={setShowMoveModal}
+        />
+      )}
+
+      {/* Replacement Vehicle Modal */}
+      {vehicleToReplace && (
+        <ReplacementVehicleModal
+          vehicle={vehicleToReplace}
+          vehicles={vehicles}
+          open={showReplacementModal}
+          onOpenChange={setShowReplacementModal}
         />
       )}
 
