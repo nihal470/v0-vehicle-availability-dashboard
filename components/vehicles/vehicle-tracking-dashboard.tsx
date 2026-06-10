@@ -32,15 +32,13 @@ import {
   LogOut,
   Archive,
   Eye,
-  EyeOff,
-  Replace
+  EyeOff
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
-import { ReplacementVehicleModal } from './replacement-vehicle-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
 import { BulkUpdateModal } from './bulk-update-modal'
 import { differenceInDays, format } from 'date-fns'
@@ -191,8 +189,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
-  const [showReplacementModal, setShowReplacementModal] = useState(false)
-  const [vehicleToReplace, setVehicleToReplace] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
@@ -245,28 +241,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const criticalAlerts = alerts.filter(a => a.severity === 'critical')
   const warningAlerts = alerts.filter(a => a.severity === 'warning')
   
-  // IDs of vehicles currently serving as a temporary replacement
-  const replacementVehicleIds = useMemo(() => {
-    const ids = new Set<string>()
-    activeVehicles.forEach(v => {
-      if (v.replacement_type === 'temporary' && v.replacement_vehicle_id) {
-        ids.add(v.replacement_vehicle_id)
-      }
-    })
-    return ids
-  }, [activeVehicles])
-
   // Vehicle status counts (excluding returned)
   const statusCounts = useMemo(() => ({
-    // Idle excludes vehicles acting as a temporary replacement
-    idle: activeVehicles.filter(v => v.status === 'idle' && !replacementVehicleIds.has(v.id)).length,
+    idle: activeVehicles.filter(v => v.status === 'idle').length,
     garage: activeVehicles.filter(v => v.status === 'garage').length,
     running: activeVehicles.filter(v => v.status === 'running').length,
     available: activeVehicles.filter(v => v.status === 'available').length,
     maintenance: activeVehicles.filter(v => v.status === 'maintenance').length,
-    replacement: activeVehicles.filter(v => replacementVehicleIds.has(v.id)).length,
     returned: returnedVehicles.length,
-  }), [activeVehicles, returnedVehicles, replacementVehicleIds])
+  }), [activeVehicles, returnedVehicles])
 
   const filteredVehicles = useMemo(() => {
     // Use active vehicles by default, or include returned if filter is specifically 'returned' or showReturnedVehicles is true
@@ -284,22 +267,11 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       
       const matchesCategory = categoryFilter === 'all' || vehicle.category_id === categoryFilter
       
-      const isReplacement = replacementVehicleIds.has(vehicle.id)
-      let matchesStatus: boolean
-      if (statusFilter === 'all') {
-        matchesStatus = true
-      } else if (statusFilter === 'replacement') {
-        matchesStatus = isReplacement
-      } else if (statusFilter === 'idle') {
-        // Vehicles acting as a temporary replacement are shown under Replacement, not Idle
-        matchesStatus = vehicle.status === 'idle' && !isReplacement
-      } else {
-        matchesStatus = vehicle.status === statusFilter
-      }
+      const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
 
       return matchesSearch && matchesCategory && matchesStatus
     })
-  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, showReturnedVehicles, replacementVehicleIds])
+  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, showReturnedVehicles])
 
   const getAlertIcon = (type: VehicleAlert['type']) => {
     switch (type) {
@@ -440,19 +412,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
               <span className="text-lg font-bold">{statusCounts.maintenance}</span>
               <span className="text-xs">Maintenance</span>
             </Button>
-
-            {/* Replacement - temporary replacement vehicles */}
-            {statusCounts.replacement > 0 && (
-              <Button
-                variant={statusFilter === 'replacement' ? 'default' : 'outline'}
-                className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'replacement' ? 'bg-orange-600 hover:bg-orange-700' : 'border-orange-500/50 text-orange-700 hover:bg-orange-50'}`}
-                onClick={() => setStatusFilter('replacement')}
-              >
-                <Replace className="h-6 w-6" />
-                <span className="text-lg font-bold">{statusCounts.replacement}</span>
-                <span className="text-xs">Replacement</span>
-              </Button>
-            )}
             
             {/* Returned (Inactive) - Only show if there are returned vehicles */}
             {statusCounts.returned > 0 && (
@@ -642,15 +601,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       </td>
                       <td className="p-3">
                         {vehicle.customer_name ? (
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium">{vehicle.customer_name}</span>
-                            {vehicle.replacement_type === 'temporary' && vehicle.replacement_vehicle_id && (
-                              <Badge variant="outline" className="w-fit gap-1 border-orange-300 text-orange-700 bg-orange-50">
-                                <Replace className="h-3 w-3" />
-                                Temp: {vehicles.find(v => v.id === vehicle.replacement_vehicle_id)?.license_plate ?? 'assigned'}
-                              </Badge>
-                            )}
-                          </div>
+                          <span className="font-medium">{vehicle.customer_name}</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -771,18 +722,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="text-orange-600 border-orange-600 hover:bg-orange-50"
-                                onClick={() => {
-                                  setVehicleToReplace(vehicle)
-                                  setShowReplacementModal(true)
-                                }}
-                              >
-                                <Replace className="h-4 w-4 mr-1" />
-                                Replacement
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
                                 className="text-amber-600 border-amber-600 hover:bg-amber-50"
                                 onClick={() => {
                                   setVehicleToClose(vehicle)
@@ -889,16 +828,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToMove}
           open={showMoveModal}
           onOpenChange={setShowMoveModal}
-        />
-      )}
-
-      {/* Replacement Vehicle Modal */}
-      {vehicleToReplace && (
-        <ReplacementVehicleModal
-          vehicle={vehicleToReplace}
-          vehicles={vehicles}
-          open={showReplacementModal}
-          onOpenChange={setShowReplacementModal}
         />
       )}
 
