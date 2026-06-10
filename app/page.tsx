@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Dashboard } from '@/components/fleet/dashboard'
 import type { CategoryWithVehicles, FleetStats, Location, VehicleCategory, Vehicle, VehicleBooking } from '@/lib/types'
-import { Truck, Calendar, Gauge, FileText, Car, Activity } from 'lucide-react'
+import { Truck, Calendar, Gauge, FileText, Car, Activity, GanttChartSquare } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
@@ -126,6 +126,17 @@ export default async function FleetPage() {
                 <Link href="/calendar">
                   <Calendar className="mr-2 h-4 w-4" />
                   Calendar
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-slate-300 hover:text-white hover:bg-slate-800"
+              >
+                <Link href="/gantt">
+                  <GanttChartSquare className="mr-2 h-4 w-4" />
+                  Gantt
                 </Link>
               </Button>
               <Button
