@@ -13,6 +13,31 @@ export interface VehicleTransfer {
   vehicle?: Vehicle
 }
 
+export type InspectionType = 'checkout' | 'checkin'
+
+export interface InspectionPhoto {
+  id: string
+  vehicle_id: string
+  ag_no: string | null
+  customer_name: string | null
+  inspection_type: InspectionType
+  storage_path: string
+  public_url: string
+  file_name: string | null
+  mime_type: string | null
+  file_size: number | null
+  width: number | null
+  height: number | null
+  captured_at: string
+  gps_latitude: number | null
+  gps_longitude: number | null
+  gps_accuracy: number | null
+  user_id: string | null
+  user_email: string | null
+  notes: string | null
+  created_at: string
+}
+
 export interface Location {
   id: string
   name: string

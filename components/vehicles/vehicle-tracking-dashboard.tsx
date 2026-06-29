@@ -32,13 +32,16 @@ import {
   LogOut,
   Archive,
   Eye,
-  EyeOff
+  EyeOff,
+  Camera
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
+import { InspectionCaptureModal } from './inspection-capture-modal'
+import { InspectionGalleryModal } from './inspection-gallery-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
 import { BulkUpdateModal } from './bulk-update-modal'
 import { differenceInDays, format } from 'date-fns'
@@ -189,6 +192,9 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
+  const [showInspectionModal, setShowInspectionModal] = useState(false)
+  const [showGalleryModal, setShowGalleryModal] = useState(false)
+  const [vehicleForInspection, setVehicleForInspection] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
@@ -710,6 +716,30 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                className="text-teal-600 border-teal-600 hover:bg-teal-50"
+                                onClick={() => {
+                                  setVehicleForInspection(vehicle)
+                                  setShowInspectionModal(true)
+                                }}
+                              >
+                                <Camera className="h-4 w-4 mr-1" />
+                                Inspection
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-purple-600 border-purple-600 hover:bg-purple-50"
+                                onClick={() => {
+                                  setVehicleForInspection(vehicle)
+                                  setShowGalleryModal(true)
+                                }}
+                              >
+                                <ListChecks className="h-4 w-4 mr-1" />
+                                Photos
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
                                 className="text-blue-600 border-blue-600 hover:bg-blue-50"
                                 onClick={() => {
                                   setVehicleForPayment(vehicle)
@@ -828,6 +858,25 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToMove}
           open={showMoveModal}
           onOpenChange={setShowMoveModal}
+        />
+      )}
+
+      {/* Inspection Capture Modal */}
+      {vehicleForInspection && (
+        <InspectionCaptureModal
+          vehicle={vehicleForInspection}
+          open={showInspectionModal}
+          onOpenChange={setShowInspectionModal}
+        />
+      )}
+
+      {/* Inspection Gallery Modal */}
+      {vehicleForInspection && (
+        <InspectionGalleryModal
+          vehicle={vehicleForInspection}
+          open={showGalleryModal}
+          onOpenChange={setShowGalleryModal}
+          onAddPhotos={() => setShowInspectionModal(true)}
         />
       )}
 
