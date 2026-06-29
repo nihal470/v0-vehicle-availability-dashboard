@@ -5,6 +5,7 @@ import { Truck, Calendar, Gauge, FileText, Car, Activity, GanttChartSquare, Buil
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
+import { HeaderAuthMenu } from '@/components/auth/header-auth-menu'
 
 // Disable caching for real-time data
 export const dynamic = 'force-dynamic'
@@ -61,8 +62,17 @@ async function getFleetData() {
   }
 }
 
+async function getCurrentUserEmail() {
+  const supabase = await createClient()
+  const { data } = await supabase.auth.getUser()
+  return data.user?.email ?? null
+}
+
 export default async function FleetPage() {
-  const { categories, locations, allCategories, stats } = await getFleetData()
+  const [{ categories, locations, allCategories, stats }, userEmail] = await Promise.all([
+    getFleetData(),
+    getCurrentUserEmail(),
+  ])
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,6 +171,9 @@ export default async function FleetPage() {
                   Logs
                 </Link>
               </Button>
+              <div className="ml-2 border-l border-slate-700 pl-2">
+                <HeaderAuthMenu userEmail={userEmail} />
+              </div>
             </nav>
           </div>
         </div>
