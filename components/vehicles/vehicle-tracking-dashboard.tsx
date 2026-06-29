@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Vehicle, VehicleCategory, VehicleAlert } from '@/lib/types'
+import { Vehicle, VehicleCategory, VehicleAlert, BRANCHES, type Branch } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -32,13 +32,16 @@ import {
   LogOut,
   Archive,
   Eye,
-  EyeOff
+  EyeOff,
+  Building,
+  Repeat
 } from 'lucide-react'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
+import { TransferVehicleModal } from './transfer-vehicle-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
 import { BulkUpdateModal } from './bulk-update-modal'
 import { differenceInDays, format } from 'date-fns'
@@ -179,6 +182,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [branchFilter, setBranchFilter] = useState<string>('all')
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showCloseModal, setShowCloseModal] = useState(false)
@@ -189,6 +193,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
+  const [showTransferModal, setShowTransferModal] = useState(false)
+  const [vehicleToTransfer, setVehicleToTransfer] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
@@ -251,6 +257,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
     returned: returnedVehicles.length,
   }), [activeVehicles, returnedVehicles])
 
+  // Branch-wise counts (active fleet) and transferred vehicles
+  const branchCounts = useMemo(() => ({
+    Muscat: activeVehicles.filter(v => (v.branch || 'Muscat') === 'Muscat').length,
+    Salalah: activeVehicles.filter(v => v.branch === 'Salalah').length,
+    transferred: activeVehicles.filter(v => (v.transfer_count ?? 0) > 0).length,
+  }), [activeVehicles])
+
   const filteredVehicles = useMemo(() => {
     // Use active vehicles by default, or include returned if filter is specifically 'returned' or showReturnedVehicles is true
     const baseVehicles = statusFilter === 'returned' 
@@ -269,9 +282,11 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       
       const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
 
-      return matchesSearch && matchesCategory && matchesStatus
+      const matchesBranch = branchFilter === 'all' || (vehicle.branch || 'Muscat') === branchFilter
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesBranch
     })
-  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, showReturnedVehicles])
+  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, branchFilter, showReturnedVehicles])
 
   const getAlertIcon = (type: VehicleAlert['type']) => {
     switch (type) {
@@ -429,6 +444,79 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
         </CardContent>
       </Card>
 
+      {/* Branch-wise Overview */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Building className="h-5 w-5 text-primary" />
+            Branch-wise Vehicles
+          </CardTitle>
+          {branchFilter !== 'all' && (
+            <Button variant="ghost" size="sm" onClick={() => setBranchFilter('all')}>
+              Clear branch filter
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <button
+              type="button"
+              onClick={() => setBranchFilter(branchFilter === 'Muscat' ? 'all' : 'Muscat')}
+              className={`flex items-center justify-between rounded-lg border p-4 text-left transition-colors ${
+                branchFilter === 'Muscat'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'hover:bg-muted/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-sky-100 p-2">
+                  <Building className="h-5 w-5 text-sky-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Muscat Branch</p>
+                  <p className="text-2xl font-bold">{branchCounts.Muscat}</p>
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground">vehicles</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBranchFilter(branchFilter === 'Salalah' ? 'all' : 'Salalah')}
+              className={`flex items-center justify-between rounded-lg border p-4 text-left transition-colors ${
+                branchFilter === 'Salalah'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'hover:bg-muted/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-emerald-100 p-2">
+                  <Building className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Salalah Branch</p>
+                  <p className="text-2xl font-bold">{branchCounts.Salalah}</p>
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground">vehicles</span>
+            </button>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-amber-100 p-2">
+                  <Repeat className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Transferred</p>
+                  <p className="text-2xl font-bold">{branchCounts.transferred}</p>
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground">vehicles moved</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Alerts Section */}
       {alerts.length > 0 && (
         <Card>
@@ -484,6 +572,22 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
             className="pl-9"
           />
         </div>
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Branches" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Branches</SelectItem>
+            {BRANCHES.map((branch) => (
+              <SelectItem key={branch} value={branch}>
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  {branch}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Categories" />
