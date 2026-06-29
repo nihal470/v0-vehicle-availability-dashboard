@@ -35,7 +35,7 @@ export default function LoginPage() {
         password,
       })
       if (error) throw error
-      router.push('/bookings')
+      router.push('/')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
@@ -106,11 +106,6 @@ export default function LoginPage() {
               </form>
             </CardContent>
           </Card>
-          <div className="text-center text-sm text-muted-foreground">
-            <Link href="/" className="hover:underline">
-              Back to Dashboard
-            </Link>
-          </div>
         </div>
       </div>
     </div>
