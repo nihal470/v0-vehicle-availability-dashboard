@@ -1,8 +1,5 @@
 export type VehicleStatus = 'available' | 'running' | 'idle' | 'garage' | 'maintenance' | 'returned'
 export type BookingStatus = 'booked' | 'completed' | 'cancelled'
-export type Branch = 'Muscat' | 'Salalah'
-
-export const BRANCHES: Branch[] = ['Muscat', 'Salalah']
 
 export interface Location {
   id: string
@@ -54,9 +51,6 @@ export interface Vehicle {
   amount_paid: number | null
   // Ownership
   ownership_type: 'owned' | 'leased' | null
-  // Branch management
-  branch: Branch
-  transfer_count: number
   // Parked location for idle vehicles
   parked_location: 'car_wash' | 'airport' | 'office_front' | 'custom' | null
   parked_location_custom: string | null

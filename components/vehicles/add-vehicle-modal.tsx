@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { VehicleCategory, VehicleStatus, BRANCHES, type Branch } from '@/lib/types'
+import { VehicleCategory, VehicleStatus } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import {
   Dialog,
@@ -121,7 +121,6 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
     category_id: '',
     status: 'idle' as VehicleStatus,
     ownership_type: 'owned' as 'owned' | 'leased',
-    branch: 'Muscat' as Branch,
     insurance_start_date: '',
     insurance_end_date: '',
     mulkiya_renewal_date: '',
@@ -155,7 +154,6 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
         category_id: formData.category_id || null,
         status: formData.status,
         ownership_type: formData.ownership_type,
-        branch: formData.branch,
         insurance_start_date: formData.insurance_start_date || null,
         insurance_end_date: formData.insurance_end_date || null,
         mulkiya_renewal_date: formData.mulkiya_renewal_date || null,
@@ -181,7 +179,6 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
         category_id: '',
         status: 'idle',
         ownership_type: 'owned',
-        branch: 'Muscat',
         insurance_start_date: '',
         insurance_end_date: '',
         mulkiya_renewal_date: '',
@@ -347,29 +344,6 @@ export function AddVehicleModal({ categories, open, onOpenChange }: Props) {
                           Leased
                         </div>
                       </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="branch">Branch</Label>
-                  <Select
-                    value={formData.branch}
-                    onValueChange={(value) => handleInputChange('branch', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BRANCHES.map((branch) => (
-                        <SelectItem key={branch} value={branch}>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-primary" />
-                            {branch}
-                          </div>
-                        </SelectItem>
-                      ))}
                     </SelectContent>
                   </Select>
                 </div>
