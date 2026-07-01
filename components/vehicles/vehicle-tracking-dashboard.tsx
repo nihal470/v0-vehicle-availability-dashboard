@@ -807,8 +807,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                                 </DropdownMenuItem>
                               )}
 
-                              {/* Set Parked Location - only for idle vehicles */}
-                              {vehicle.status === 'idle' && !vehicle.customer_name && (
+                              {/* Set Parked Location - for parked (non-rented) active vehicles */}
+                              {!vehicle.customer_name && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
                                 <DropdownMenuItem
                                   className="text-amber-600 focus:text-amber-600"
                                   onClick={() => {
