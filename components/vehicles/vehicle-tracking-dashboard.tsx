@@ -48,6 +48,7 @@ import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
+import { SetParkedLocationModal } from './set-parked-location-modal'
 import { InspectionCaptureModal } from './inspection-capture-modal'
 import { InspectionGalleryModal } from './inspection-gallery-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
@@ -201,6 +202,8 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
+  const [showParkedLocationModal, setShowParkedLocationModal] = useState(false)
+  const [vehicleForParkedLocation, setVehicleForParkedLocation] = useState<Vehicle | null>(null)
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showGalleryModal, setShowGalleryModal] = useState(false)
   const [vehicleForInspection, setVehicleForInspection] = useState<Vehicle | null>(null)
@@ -804,6 +807,20 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                                 </DropdownMenuItem>
                               )}
 
+                              {/* Set Parked Location - only for idle vehicles */}
+                              {vehicle.status === 'idle' && !vehicle.customer_name && (
+                                <DropdownMenuItem
+                                  className="text-amber-600 focus:text-amber-600"
+                                  onClick={() => {
+                                    setVehicleForParkedLocation(vehicle)
+                                    setShowParkedLocationModal(true)
+                                  }}
+                                >
+                                  <MapPin className="h-4 w-4" />
+                                  {vehicle.parked_location ? 'Update Parked Location' : 'Set Parked Location'}
+                                </DropdownMenuItem>
+                              )}
+
                               {/* Mark as Returned - only for leased vehicles that are not running */}
                               {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
                                 <DropdownMenuItem
@@ -885,6 +902,15 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           vehicle={vehicleToMove}
           open={showMoveModal}
           onOpenChange={setShowMoveModal}
+        />
+      )}
+
+      {/* Set Parked Location Modal */}
+      {vehicleForParkedLocation && (
+        <SetParkedLocationModal
+          vehicle={vehicleForParkedLocation}
+          open={showParkedLocationModal}
+          onOpenChange={setShowParkedLocationModal}
         />
       )}
 
