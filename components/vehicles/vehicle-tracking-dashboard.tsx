@@ -552,7 +552,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       <th className="p-3 text-left text-sm font-medium">Return Date</th>
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
-                  <th className="p-3 text-left text-sm font-medium">Renewal Date</th>
+
                   <th className="p-3 text-left text-sm font-medium">Payment</th>
                   <th className="p-3 text-left text-sm font-medium">Current KM</th>
                   <th className="p-3 text-left text-sm font-medium">Alert Status</th>
@@ -659,13 +659,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       <td className="p-3">
                         {vehicle.rental_type ? (
                           <Badge variant="outline" className="uppercase">{vehicle.rental_type}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.rental_renewal_date ? (
-                          <span>{format(new Date(vehicle.rental_renewal_date), 'dd-MMM-yy')}</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
