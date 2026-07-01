@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Vehicle, VehicleCategory, VehicleAlert } from '@/lib/types'
+import { Vehicle, VehicleCategory, VehicleAlert, BRANCHES } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -182,6 +182,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [branchFilter, setBranchFilter] = useState<string>('all')
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showCloseModal, setShowCloseModal] = useState(false)
@@ -275,9 +276,11 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       
       const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
 
-      return matchesSearch && matchesCategory && matchesStatus
+      const matchesBranch = branchFilter === 'all' || (vehicle.branch || 'Muscat') === branchFilter
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesBranch
     })
-  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, showReturnedVehicles])
+  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, branchFilter, showReturnedVehicles])
 
   const getAlertIcon = (type: VehicleAlert['type']) => {
     switch (type) {
@@ -499,6 +502,19 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Branches" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Branches</SelectItem>
+            {BRANCHES.map((branch) => (
+              <SelectItem key={branch} value={branch}>
+                {branch}
               </SelectItem>
             ))}
           </SelectContent>
