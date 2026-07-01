@@ -33,8 +33,16 @@ import {
   Archive,
   Eye,
   EyeOff,
-  Camera
+  Camera,
+  MoreHorizontal
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
@@ -695,121 +703,120 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedVehicle(vehicle)
-                              setShowModal(true)
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          {vehicle.status === 'idle' && !vehicle.customer_name && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
-                              onClick={() => {
-                                setVehicleToStart(vehicle)
-                                setShowStartModal(true)
-                              }}
-                            >
-                              <PlayCircle className="h-4 w-4 mr-1" />
-                              Start
-                            </Button>
-                          )}
-                          {vehicle.status === 'running' && vehicle.customer_name && (
-                            <>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-indigo-600 border-indigo-600 hover:bg-indigo-50"
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <MoreHorizontal className="h-4 w-4 mr-1" />
+                                Actions
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
                                 onClick={() => {
-                                  setVehicleToEditAgreement(vehicle)
-                                  setShowEditAgreementModal(true)
+                                  setSelectedVehicle(vehicle)
+                                  setShowModal(true)
                                 }}
                               >
-                                <FileText className="h-4 w-4 mr-1" />
-                                Edit Agreement
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-teal-600 border-teal-600 hover:bg-teal-50"
-                                onClick={() => {
-                                  setVehicleForInspection(vehicle)
-                                  setShowInspectionModal(true)
-                                }}
-                              >
-                                <Camera className="h-4 w-4 mr-1" />
-                                Inspection
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-purple-600 border-purple-600 hover:bg-purple-50"
-                                onClick={() => {
-                                  setVehicleForInspection(vehicle)
-                                  setShowGalleryModal(true)
-                                }}
-                              >
-                                <ListChecks className="h-4 w-4 mr-1" />
-                                Photos
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                                onClick={() => {
-                                  setVehicleForPayment(vehicle)
-                                  setShowPaymentModal(true)
-                                }}
-                              >
-                                <CreditCard className="h-4 w-4 mr-1" />
-                                Renew
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-amber-600 border-amber-600 hover:bg-amber-50"
-                                onClick={() => {
-                                  setVehicleToClose(vehicle)
-                                  setShowCloseModal(true)
-                                }}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Close
-                              </Button>
-                            </>
-                          )}
-                          {/* Move button - available for idle, available, garage, maintenance */}
-                          {!vehicle.customer_name && vehicle.status !== 'returned' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-slate-600 border-slate-400 hover:bg-slate-50"
-                              onClick={() => {
-                                setVehicleToMove(vehicle)
-                                setShowMoveModal(true)
-                              }}
-                            >
-                              <ArrowRightLeft className="h-4 w-4 mr-1" />
-                              Move
-                            </Button>
-                          )}
-                          {/* Mark as Returned - only for leased vehicles that are not running */}
-                          {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-rose-600 border-rose-600 hover:bg-rose-50"
-                              onClick={() => handleMarkAsReturned(vehicle)}
-                            >
-                              <LogOut className="h-4 w-4 mr-1" />
-                              Return
-                            </Button>
-                          )}
+                                <FileText className="h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+
+                              {vehicle.status === 'idle' && !vehicle.customer_name && (
+                                <DropdownMenuItem
+                                  className="text-emerald-600 focus:text-emerald-600"
+                                  onClick={() => {
+                                    setVehicleToStart(vehicle)
+                                    setShowStartModal(true)
+                                  }}
+                                >
+                                  <PlayCircle className="h-4 w-4" />
+                                  Start Agreement
+                                </DropdownMenuItem>
+                              )}
+
+                              {vehicle.status === 'running' && vehicle.customer_name && (
+                                <>
+                                  <DropdownMenuItem
+                                    className="text-indigo-600 focus:text-indigo-600"
+                                    onClick={() => {
+                                      setVehicleToEditAgreement(vehicle)
+                                      setShowEditAgreementModal(true)
+                                    }}
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                    Edit Agreement
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-teal-600 focus:text-teal-600"
+                                    onClick={() => {
+                                      setVehicleForInspection(vehicle)
+                                      setShowInspectionModal(true)
+                                    }}
+                                  >
+                                    <Camera className="h-4 w-4" />
+                                    Inspection
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-purple-600 focus:text-purple-600"
+                                    onClick={() => {
+                                      setVehicleForInspection(vehicle)
+                                      setShowGalleryModal(true)
+                                    }}
+                                  >
+                                    <ListChecks className="h-4 w-4" />
+                                    Photos
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-blue-600 focus:text-blue-600"
+                                    onClick={() => {
+                                      setVehicleForPayment(vehicle)
+                                      setShowPaymentModal(true)
+                                    }}
+                                  >
+                                    <CreditCard className="h-4 w-4" />
+                                    Renew
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className="text-amber-600 focus:text-amber-600"
+                                    onClick={() => {
+                                      setVehicleToClose(vehicle)
+                                      setShowCloseModal(true)
+                                    }}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                    Close Agreement
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+
+                              {/* Move - available for idle, available, garage, maintenance */}
+                              {!vehicle.customer_name && vehicle.status !== 'returned' && (
+                                <DropdownMenuItem
+                                  className="text-slate-600 focus:text-slate-600"
+                                  onClick={() => {
+                                    setVehicleToMove(vehicle)
+                                    setShowMoveModal(true)
+                                  }}
+                                >
+                                  <ArrowRightLeft className="h-4 w-4" />
+                                  Move
+                                </DropdownMenuItem>
+                              )}
+
+                              {/* Mark as Returned - only for leased vehicles that are not running */}
+                              {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => handleMarkAsReturned(vehicle)}
+                                >
+                                  <LogOut className="h-4 w-4" />
+                                  Return
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+
                           {/* Returned badge for returned vehicles */}
                           {vehicle.status === 'returned' && (
                             <Badge variant="secondary" className="bg-rose-100 text-rose-700">
