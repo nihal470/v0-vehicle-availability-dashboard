@@ -528,8 +528,9 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">Vehicle</th>
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
                   <th className="p-3 text-left text-sm font-medium">Own/Lease</th>
-                  <th className="p-3 text-left text-sm font-medium">Status</th>
-                  <th className="p-3 text-left text-sm font-medium">Parked Location</th>
+                    <th className="p-3 text-left text-sm font-medium">Status</th>
+                    <th className="p-3 text-left text-sm font-medium">Current Branch</th>
+                    <th className="p-3 text-left text-sm font-medium">Parked Location</th>
                       <th className="p-3 text-left text-sm font-medium">Customer Name</th>
                       <th className="p-3 text-left text-sm font-medium">Start Date</th>
                       <th className="p-3 text-left text-sm font-medium">Return Date</th>
@@ -585,6 +586,16 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           {vehicle.status === 'maintenance' && <Wrench className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'returned' && <Archive className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'returned' ? 'Inactive' : vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
+                        <Badge variant="outline" className={
+                          vehicle.branch === 'Salalah'
+                            ? 'border-orange-500 text-orange-600 bg-orange-50'
+                            : 'border-indigo-500 text-indigo-600 bg-indigo-50'
+                        }>
+                          <Building2 className="h-3 w-3 mr-1" />
+                          {vehicle.branch || 'Muscat'}
                         </Badge>
                       </td>
                       <td className="p-3">
