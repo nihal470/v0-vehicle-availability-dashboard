@@ -627,17 +627,35 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                       </td>
                       <td className="p-3">
                         {vehicle.status === 'idle' && vehicle.parked_location ? (
-                          <div className="flex items-center gap-1.5">
-                            {vehicle.parked_location === 'car_wash' && <CarIcon className="h-4 w-4 text-amber-600" />}
-                            {vehicle.parked_location === 'airport' && <Plane className="h-4 w-4 text-amber-600" />}
-                            {vehicle.parked_location === 'office_front' && <Building2 className="h-4 w-4 text-amber-600" />}
-                            {vehicle.parked_location === 'custom' && <MapPin className="h-4 w-4 text-amber-600" />}
-                            <span className="text-sm">
-                              {vehicle.parked_location === 'car_wash' && 'Car Wash'}
-                              {vehicle.parked_location === 'airport' && 'Airport'}
-                              {vehicle.parked_location === 'office_front' && 'Office Front'}
-                              {vehicle.parked_location === 'custom' && vehicle.parked_location_custom}
-                            </span>
+                          <div className="flex items-center gap-2">
+                            {vehicle.parked_location_photo && (
+                              <a
+                                href={vehicle.parked_location_photo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="shrink-0"
+                                title="View parking photo"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={vehicle.parked_location_photo || "/placeholder.svg"}
+                                  alt="Parking location"
+                                  className="h-9 w-9 rounded object-cover border hover:ring-2 hover:ring-amber-400"
+                                />
+                              </a>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                              {vehicle.parked_location === 'car_wash' && <CarIcon className="h-4 w-4 text-amber-600" />}
+                              {vehicle.parked_location === 'airport' && <Plane className="h-4 w-4 text-amber-600" />}
+                              {vehicle.parked_location === 'office_front' && <Building2 className="h-4 w-4 text-amber-600" />}
+                              {vehicle.parked_location === 'custom' && <MapPin className="h-4 w-4 text-amber-600" />}
+                              <span className="text-sm">
+                                {vehicle.parked_location === 'car_wash' && 'Car Wash'}
+                                {vehicle.parked_location === 'airport' && 'Airport'}
+                                {vehicle.parked_location === 'office_front' && 'Office Front'}
+                                {vehicle.parked_location === 'custom' && vehicle.parked_location_custom}
+                              </span>
+                            </div>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
