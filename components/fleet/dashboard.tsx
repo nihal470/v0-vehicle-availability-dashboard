@@ -6,7 +6,7 @@ import { ReturnsSummary } from './returns-summary'
 import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, FileText, ChevronRight, Info, Receipt } from 'lucide-react'
+import { FileText, ChevronRight, Info, Receipt } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, FleetStats } from '@/lib/types'
 
@@ -40,15 +40,6 @@ export function Dashboard({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Link href="/calendar" className="block">
-              <Button variant="outline" className="w-full justify-between group hover:border-primary hover:bg-primary/5">
-                <span className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  Booking Calendar
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Button>
-            </Link>
             <Link href="/vehicle-logs" className="block">
               <Button variant="outline" className="w-full justify-between group hover:border-primary hover:bg-primary/5">
                 <span className="flex items-center gap-2">
