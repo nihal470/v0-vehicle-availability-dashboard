@@ -150,8 +150,8 @@ export function RentalInvoice() {
 
       {/* Invoice document */}
       <div
-        className="invoice-sheet bg-white border border-gray-300 shadow-sm max-w-4xl mx-auto print:shadow-none print:border-none"
-        style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+        className="invoice-sheet bg-white border border-gray-300 shadow-sm mx-auto print:shadow-none print:border-none"
+        style={{ fontFamily: 'Arial, Helvetica, sans-serif', width: '210mm', minHeight: '297mm' }}
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-6 p-8 border-b-4 border-blue-800">
@@ -437,13 +437,30 @@ export function RentalInvoice() {
         @media print {
           @page {
             size: A4;
-            margin: 12mm;
+            margin: 0;
           }
+          html,
           body {
             background: white !important;
           }
+          /* Fit the sheet exactly to the printable A4 area */
           .invoice-sheet {
-            max-width: 100% !important;
+            width: 210mm !important;
+            min-height: auto !important;
+            margin: 0 !important;
+            padding: 8mm 10mm !important;
+            box-sizing: border-box !important;
+          }
+          /* Remove the outer page padding from each section so it compresses to one page */
+          .invoice-sheet .p-8 {
+            padding: 0.5rem 0 !important;
+          }
+          .invoice-sheet table td {
+            padding-top: 1px !important;
+            padding-bottom: 1px !important;
+          }
+          .invoice-sheet {
+            font-size: 11px !important;
           }
         }
       `}</style>
