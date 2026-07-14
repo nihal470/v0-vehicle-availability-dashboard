@@ -427,7 +427,7 @@ export function RentalInvoice() {
         </div>
 
         {/* Footer */}
-        <div className="bg-blue-800 text-white text-center py-3 px-8">
+        <div className="footer-bar bg-blue-800 text-white text-center py-3 px-8">
           <p className="text-sm">Thank you for choosing {COMPANY.name}. We appreciate your business.</p>
         </div>
       </div>
@@ -436,31 +436,64 @@ export function RentalInvoice() {
       <style jsx global>{`
         @media print {
           @page {
-            size: A4;
+            size: A4 portrait;
             margin: 0;
           }
           html,
           body {
             background: white !important;
           }
-          /* Fit the sheet exactly to the printable A4 area */
+          /* Fit the sheet exactly to the printable A4 area, single page */
           .invoice-sheet {
             width: 210mm !important;
-            min-height: auto !important;
+            min-height: 0 !important;
+            height: auto !important;
+            max-height: 297mm !important;
             margin: 0 !important;
-            padding: 8mm 10mm !important;
+            padding: 4mm 8mm !important;
             box-sizing: border-box !important;
+            font-size: 10px !important;
+            line-height: 1.25 !important;
+            overflow: hidden !important;
           }
-          /* Remove the outer page padding from each section so it compresses to one page */
+          /* Collapse the generous section padding so everything stacks onto one page */
           .invoice-sheet .p-8 {
-            padding: 0.5rem 0 !important;
+            padding: 6px 0 !important;
           }
-          .invoice-sheet table td {
+          /* Tighten vertical rhythm */
+          .invoice-sheet table td,
+          .invoice-sheet table th {
             padding-top: 1px !important;
             padding-bottom: 1px !important;
           }
-          .invoice-sheet {
-            font-size: 11px !important;
+          .invoice-sheet .mb-3 {
+            margin-bottom: 4px !important;
+          }
+          .invoice-sheet .mt-4 {
+            margin-top: 6px !important;
+          }
+          .invoice-sheet .py-2 {
+            padding-top: 3px !important;
+            padding-bottom: 3px !important;
+          }
+          /* Shrink oversized display elements */
+          .invoice-sheet h1 {
+            font-size: 22px !important;
+          }
+          .invoice-sheet img {
+            height: 44px !important;
+          }
+          .invoice-sheet .text-lg {
+            font-size: 13px !important;
+          }
+          /* Keep the header/footer color bars in print */
+          .invoice-sheet .bg-blue-800 {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .invoice-sheet .footer-bar {
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
           }
         }
       `}</style>
