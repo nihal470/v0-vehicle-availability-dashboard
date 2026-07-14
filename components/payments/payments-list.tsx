@@ -31,7 +31,8 @@ import {
   ArrowLeft,
   RefreshCw,
   Pencil,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Payment, PaymentMode } from '@/lib/types'
@@ -190,6 +191,12 @@ export function PaymentsList() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+          <Link href="/invoice">
+            <Button variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              New Invoice
+            </Button>
+          </Link>
           <Link href="/payments/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
