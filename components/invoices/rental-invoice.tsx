@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Printer } from 'lucide-react'
+import { Printer, Save, Check, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 const COMPANY = {
   name: 'Travz Car Rental',
@@ -129,6 +130,54 @@ export function RentalInvoice() {
 
   const money = (n: number) => n.toFixed(3)
 
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const saveInvoice = async () => {
+    setSaveState('saving')
+    setSaveError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('invoices').insert({
+        invoice_no: invoiceNo,
+        reservation_no: reservationNo || null,
+        invoice_date: invoiceDate || null,
+        due_date: dueDate || null,
+        payment_status: paymentStatus,
+        customer_name: customer.name || null,
+        customer_passport: customer.passport || null,
+        customer_nationality: customer.nationality || null,
+        customer_licence: customer.licence || null,
+        customer_mobile: customer.mobile || null,
+        customer_email: customer.email || null,
+        rental_vehicle: rental.vehicle || null,
+        rental_reg_no: rental.regNo || null,
+        rental_pickup_datetime: rental.pickupDateTime || null,
+        rental_return_datetime: rental.returnDateTime || null,
+        rental_pickup_location: rental.pickupLocation || null,
+        rental_return_location: rental.returnLocation || null,
+        rental_duration: rental.duration || null,
+        charges: charges,
+        discount: discountValue,
+        vat_rate: vatRate,
+        subtotal: subtotal,
+        vat_amount: vatValue,
+        grand_total: grandTotal,
+        payment_method: payment.method || null,
+        payment_transaction_ref: payment.transactionRef || null,
+        amount_paid: amountPaidValue,
+        balance_due: balanceDue,
+      })
+      if (error) throw error
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 2500)
+    } catch (err) {
+      console.error('[v0] Failed to save invoice:', err)
+      setSaveError(err instanceof Error ? err.message : 'Failed to save invoice')
+      setSaveState('error')
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Print controls */}
@@ -142,11 +191,31 @@ export function RentalInvoice() {
           <option value="Pending">Pending</option>
           <option value="Paid">Paid</option>
         </select>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={saveInvoice}
+          disabled={saveState === 'saving'}
+        >
+          {saveState === 'saving' ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : saveState === 'saved' ? (
+            <Check className="h-4 w-4 mr-2 text-green-600" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
+          {saveState === 'saving' ? 'Saving...' : saveState === 'saved' ? 'Saved' : 'Save Invoice'}
+        </Button>
         <Button size="sm" onClick={() => window.print()}>
           <Printer className="h-4 w-4 mr-2" />
           Print / Save PDF
         </Button>
       </div>
+      {saveError && (
+        <div className="max-w-4xl mx-auto print:hidden">
+          <p className="text-sm text-red-600 text-right">{saveError}</p>
+        </div>
+      )}
 
       {/* Invoice document */}
       <div
