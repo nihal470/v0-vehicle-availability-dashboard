@@ -4,8 +4,22 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Printer, Save, Check, Loader2, FolderOpen, FilePlus } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Printer, Save, Check, Loader2, FolderOpen, FilePlus, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { InvoicePaymentsPanel } from './invoice-payments-panel'
+import {
+  addInvoicePayment,
+  getCustomers,
+  getInvoicePayments,
+  type Customer,
+} from '@/lib/accounting'
 
 const COMPANY = {
   name: 'Travz Car Rental',
@@ -139,6 +153,7 @@ export function RentalInvoice() {
   /** Reset the form to a fresh, blank invoice (separate from loading a saved one). */
   const newInvoice = () => {
     setInvoiceId(null)
+    setCustomerId(null)
     setInvoiceNo(genInvoiceNo())
     setReservationNo('')
     setInvoiceDate(new Date().toISOString().split('T')[0])
@@ -164,9 +179,49 @@ export function RentalInvoice() {
   }
 
   const [invoiceId, setInvoiceId] = useState<string | null>(null)
+  const [customerId, setCustomerId] = useState<string | null>(null)
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
+  // Bumped whenever payments change so the printed paid/balance figures refresh
+  const [paymentsVersion, setPaymentsVersion] = useState(0)
+
+  useEffect(() => {
+    getCustomers()
+      .then(setCustomers)
+      .catch((err) => console.error('[v0] Failed to load customers:', err))
+  }, [])
+
+  // Keep the printed "Amount Paid" in sync with recorded payments for a saved invoice
+  useEffect(() => {
+    if (!invoiceId) return
+    getInvoicePayments(invoiceId)
+      .then((pays) => {
+        const total = pays.reduce((s, p) => s + Number(p.amount ?? 0), 0)
+        if (total > 0) setPayment((prev) => ({ ...prev, amountPaid: String(total) }))
+      })
+      .catch((err) => console.error('[v0] Failed to sync payments:', err))
+  }, [invoiceId, paymentsVersion])
+
+  /** Fill the customer fields from a selected master customer and link it. */
+  const selectCustomer = (id: string) => {
+    if (id === '__new__') {
+      setCustomerId(null)
+      return
+    }
+    const c = customers.find((x) => x.id === id)
+    if (!c) return
+    setCustomerId(c.id)
+    setCustomer({
+      name: c.name ?? '',
+      passport: c.passport ?? '',
+      nationality: c.nationality ?? '',
+      licence: c.licence ?? '',
+      mobile: c.mobile ?? '',
+      email: c.email ?? '',
+    })
+  }
 
   useEffect(() => {
     if (!loadId) return
@@ -183,6 +238,7 @@ export function RentalInvoice() {
         if (error) throw error
         if (!data || !active) return
         setInvoiceId(data.id)
+        setCustomerId(data.customer_id ?? null)
         setInvoiceNo(data.invoice_no ?? '')
         setReservationNo(data.reservation_no ?? '')
         setInvoiceDate(data.invoice_date ?? '')
@@ -231,8 +287,33 @@ export function RentalInvoice() {
     setSaveError(null)
     try {
       const supabase = createClient()
+
+      // Ensure a linked customer master record exists
+      let linkedCustomerId = customerId
+      if (!linkedCustomerId && customer.name.trim()) {
+        const { data: newCust, error: custErr } = await supabase
+          .from('customers')
+          .insert({
+            name: customer.name.trim(),
+            passport: customer.passport || null,
+            nationality: customer.nationality || null,
+            licence: customer.licence || null,
+            mobile: customer.mobile || null,
+            email: customer.email || null,
+          })
+          .select('id')
+          .single()
+        if (custErr) throw custErr
+        if (newCust?.id) {
+          linkedCustomerId = newCust.id
+          setCustomerId(newCust.id)
+          setCustomers((prev) => [...prev, { ...(newCust as Customer), name: customer.name.trim() } as Customer])
+        }
+      }
+
       const record = {
         invoice_no: invoiceNo,
+        customer_id: linkedCustomerId,
         reservation_no: reservationNo || null,
         invoice_date: invoiceDate || null,
         due_date: dueDate || null,
@@ -275,7 +356,24 @@ export function RentalInvoice() {
           .select('id')
           .single()
         if (error) throw error
-        if (data?.id) setInvoiceId(data.id)
+        if (data?.id) {
+          setInvoiceId(data.id)
+          // Capture any initial payment entered inline as the first payment record
+          if (amountPaidValue > 0) {
+            const method = payment.method || 'Cash'
+            const isBank = /bank|card|transfer|online|cheque/i.test(method)
+            await addInvoicePayment({
+              invoice_id: data.id,
+              payment_date: invoiceDate || new Date().toISOString().split('T')[0],
+              amount: amountPaidValue,
+              method,
+              channel: isBank ? 'Bank' : 'Cash',
+              reference: payment.transactionRef || null,
+              notes: 'Initial payment recorded with invoice',
+            })
+            setPaymentsVersion((v) => v + 1)
+          }
+        }
       }
       setSaveState('saved')
       setTimeout(() => setSaveState('idle'), 2500)
@@ -289,7 +387,28 @@ export function RentalInvoice() {
   return (
     <div className="space-y-4">
       {/* Print controls */}
-      <div className="flex justify-end gap-2 print:hidden max-w-4xl mx-auto">
+      <div className="flex flex-wrap justify-end gap-2 print:hidden max-w-4xl mx-auto">
+        <div className="mr-auto flex items-center gap-2">
+          <Select value={customerId ?? '__new__'} onValueChange={selectCustomer}>
+            <SelectTrigger className="w-56" aria-label="Select customer">
+              <SelectValue placeholder="Select customer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__new__">
+                <span className="flex items-center gap-2">
+                  <UserPlus className="h-3.5 w-3.5" />
+                  New / walk-in customer
+                </span>
+              </SelectItem>
+              {customers.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                  {c.company ? ` — ${c.company}` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Button size="sm" variant="outline" onClick={newInvoice}>
           <FilePlus className="h-4 w-4 mr-2" />
           New Invoice
@@ -624,6 +743,20 @@ export function RentalInvoice() {
           <p className="text-sm">Thank you for choosing {COMPANY.name}. We appreciate your business.</p>
         </div>
       </div>
+
+      {/* Payments & deposits management (only for a saved invoice) */}
+      {invoiceId ? (
+        <InvoicePaymentsPanel
+          invoiceId={invoiceId}
+          grandTotal={grandTotal}
+          customerId={customerId}
+          onChanged={() => setPaymentsVersion((v) => v + 1)}
+        />
+      ) : (
+        <p className="max-w-4xl mx-auto text-center text-sm text-muted-foreground print:hidden">
+          Save the invoice to record multiple payments and security deposits.
+        </p>
+      )}
 
       {/* Print sizing */}
       <style jsx global>{`
