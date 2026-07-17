@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
@@ -27,7 +28,9 @@ export default function InvoicePage() {
 
       {/* Invoice content */}
       <div className="p-8 print:p-0">
-        <RentalInvoice />
+        <Suspense fallback={<div className="text-center text-sm text-gray-500">Loading invoice...</div>}>
+          <RentalInvoice />
+        </Suspense>
       </div>
     </div>
   )

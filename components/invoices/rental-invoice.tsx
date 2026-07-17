@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Printer, Save, Check, Loader2 } from 'lucide-react'
+import { Printer, Save, Check, Loader2, FolderOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const COMPANY = {
@@ -131,15 +132,78 @@ export function RentalInvoice() {
 
   const money = (n: number) => n.toFixed(3)
 
+  const searchParams = useSearchParams()
+  const loadId = searchParams.get('id')
+
+  const [invoiceId, setInvoiceId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!loadId) return
+    let active = true
+    const load = async () => {
+      setIsLoading(true)
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('id', loadId)
+          .single()
+        if (error) throw error
+        if (!data || !active) return
+        setInvoiceId(data.id)
+        setInvoiceNo(data.invoice_no ?? '')
+        setReservationNo(data.reservation_no ?? '')
+        setInvoiceDate(data.invoice_date ?? '')
+        setDueDate(data.due_date ?? '')
+        setPaymentStatus(data.payment_status === 'Paid' ? 'Paid' : 'Pending')
+        setCustomer({
+          name: data.customer_name ?? '',
+          passport: data.customer_passport ?? '',
+          nationality: data.customer_nationality ?? '',
+          licence: data.customer_licence ?? '',
+          mobile: data.customer_mobile ?? '',
+          email: data.customer_email ?? '',
+        })
+        setRental({
+          vehicle: data.rental_vehicle ?? '',
+          regNo: data.rental_reg_no ?? '',
+          pickupDateTime: data.rental_pickup_datetime ?? '',
+          returnDateTime: data.rental_return_datetime ?? '',
+          pickupLocation: data.rental_pickup_location ?? '',
+          returnLocation: data.rental_return_location ?? '',
+          duration: data.rental_duration ?? '',
+        })
+        if (Array.isArray(data.charges) && data.charges.length > 0) {
+          setCharges(data.charges as ChargeRow[])
+        }
+        setDiscount(data.discount != null && data.discount !== 0 ? String(data.discount) : '')
+        setPayment({
+          method: data.payment_method ?? '',
+          transactionRef: data.payment_transaction_ref ?? '',
+          amountPaid: data.amount_paid != null && data.amount_paid !== 0 ? String(data.amount_paid) : '',
+        })
+      } catch (err) {
+        console.error('[v0] Failed to load invoice:', err)
+      } finally {
+        if (active) setIsLoading(false)
+      }
+    }
+    load()
+    return () => {
+      active = false
+    }
+  }, [loadId])
 
   const saveInvoice = async () => {
     setSaveState('saving')
     setSaveError(null)
     try {
       const supabase = createClient()
-      const { error } = await supabase.from('invoices').insert({
+      const record = {
         invoice_no: invoiceNo,
         reservation_no: reservationNo || null,
         invoice_date: invoiceDate || null,
@@ -168,8 +232,23 @@ export function RentalInvoice() {
         payment_transaction_ref: payment.transactionRef || null,
         amount_paid: amountPaidValue,
         balance_due: balanceDue,
-      })
-      if (error) throw error
+      }
+
+      if (invoiceId) {
+        const { error } = await supabase
+          .from('invoices')
+          .update({ ...record, updated_at: new Date().toISOString() })
+          .eq('id', invoiceId)
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase
+          .from('invoices')
+          .insert(record)
+          .select('id')
+          .single()
+        if (error) throw error
+        if (data?.id) setInvoiceId(data.id)
+      }
       setSaveState('saved')
       setTimeout(() => setSaveState('idle'), 2500)
     } catch (err) {
@@ -183,6 +262,12 @@ export function RentalInvoice() {
     <div className="space-y-4">
       {/* Print controls */}
       <div className="flex justify-end gap-2 print:hidden max-w-4xl mx-auto">
+        <Link href="/invoices">
+          <Button size="sm" variant="outline">
+            <FolderOpen className="h-4 w-4 mr-2" />
+            Saved Invoices
+          </Button>
+        </Link>
         <select
           value={paymentStatus}
           onChange={(e) => setPaymentStatus(e.target.value as 'Paid' | 'Pending')}
@@ -205,7 +290,13 @@ export function RentalInvoice() {
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          {saveState === 'saving' ? 'Saving...' : saveState === 'saved' ? 'Saved' : 'Save Invoice'}
+          {saveState === 'saving'
+            ? 'Saving...'
+            : saveState === 'saved'
+              ? 'Saved'
+              : invoiceId
+                ? 'Update Invoice'
+                : 'Save Invoice'}
         </Button>
         <Button size="sm" onClick={() => window.print()}>
           <Printer className="h-4 w-4 mr-2" />
