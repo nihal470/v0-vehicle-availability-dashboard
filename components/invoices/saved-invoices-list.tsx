@@ -114,12 +114,12 @@ export function SavedInvoicesList() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Link href="/invoice">
-            <Button size="sm">
+          <Button asChild size="sm">
+            <Link href="/invoice">
               <Plus className="h-4 w-4 mr-2" />
               New Invoice
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -147,12 +147,12 @@ export function SavedInvoicesList() {
                 {searchQuery ? 'No invoices match your search.' : 'No saved invoices yet.'}
               </p>
               {!searchQuery && (
-                <Link href="/invoice" className="mt-4">
-                  <Button size="sm">
+                <Button asChild size="sm" className="mt-4">
+                  <Link href="/invoice">
                     <Plus className="h-4 w-4 mr-2" />
                     Create your first invoice
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
             </div>
           ) : (
@@ -200,11 +200,11 @@ export function SavedInvoicesList() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Link href={`/invoice?id=${inv.id}`}>
-                          <Button variant="ghost" size="sm" title="View / Edit">
+                        <Button asChild variant="ghost" size="sm" title="View / Edit">
+                          <Link href={`/invoice?id=${inv.id}`}>
                             <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
