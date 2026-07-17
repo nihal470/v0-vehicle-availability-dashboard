@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Printer, Save, Check, Loader2, FolderOpen } from 'lucide-react'
+import { Printer, Save, Check, Loader2, FolderOpen, FilePlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const COMPANY = {
@@ -132,8 +132,36 @@ export function RentalInvoice() {
 
   const money = (n: number) => n.toFixed(3)
 
+  const router = useRouter()
   const searchParams = useSearchParams()
   const loadId = searchParams.get('id')
+
+  /** Reset the form to a fresh, blank invoice (separate from loading a saved one). */
+  const newInvoice = () => {
+    setInvoiceId(null)
+    setInvoiceNo(genInvoiceNo())
+    setReservationNo('')
+    setInvoiceDate(new Date().toISOString().split('T')[0])
+    setDueDate('')
+    setPaymentStatus('Pending')
+    setCustomer({ name: '', passport: '', nationality: '', licence: '', mobile: '', email: '' })
+    setRental({
+      vehicle: '',
+      regNo: '',
+      pickupDateTime: '',
+      returnDateTime: '',
+      pickupLocation: '',
+      returnLocation: '',
+      duration: '',
+    })
+    setCharges(DEFAULT_CHARGES)
+    setDiscount('')
+    setPayment({ method: '', transactionRef: '', amountPaid: '' })
+    setSaveState('idle')
+    setSaveError(null)
+    // Drop any ?id= so this is treated as a brand-new invoice
+    if (loadId) router.replace('/invoice')
+  }
 
   const [invoiceId, setInvoiceId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -262,6 +290,10 @@ export function RentalInvoice() {
     <div className="space-y-4">
       {/* Print controls */}
       <div className="flex justify-end gap-2 print:hidden max-w-4xl mx-auto">
+        <Button size="sm" variant="outline" onClick={newInvoice}>
+          <FilePlus className="h-4 w-4 mr-2" />
+          New Invoice
+        </Button>
         <Link href="/invoices">
           <Button size="sm" variant="outline">
             <FolderOpen className="h-4 w-4 mr-2" />
