@@ -11,6 +11,7 @@ import {
   AlertTriangle, 
   Clock, 
   CalendarClock, 
+  CalendarRange,
   Car, 
   RefreshCw,
   AlertCircle,
@@ -46,7 +47,14 @@ export function UpcomingReturns() {
     if (vehicles) {
       const now = new Date()
       const returnSchedules: ReturnSchedule[] = vehicles.map((vehicle: Vehicle) => {
+        // Combine the return date with the return time (if provided) for accurate scheduling
         const returnDate = new Date(vehicle.return_date!)
+        if (vehicle.return_time) {
+          const [hh, mm] = vehicle.return_time.split(':')
+          if (hh !== undefined) {
+            returnDate.setHours(Number(hh), Number(mm ?? 0), 0, 0)
+          }
+        }
         const hoursRemaining = differenceInHours(returnDate, now)
         const daysRemaining = differenceInDays(returnDate, now)
         
@@ -133,6 +141,26 @@ export function UpcomingReturns() {
           </Badge>
         )
     }
+  }
+
+  const getRentalTypeBadge = (rentalType: Vehicle['rental_type']) => {
+    if (rentalType === 'monthly') {
+      return (
+        <Badge variant="outline" className="border-purple-300 bg-purple-50 text-purple-700">
+          <CalendarRange className="w-3 h-3 mr-1" />
+          Monthly
+        </Badge>
+      )
+    }
+    if (rentalType === 'daily') {
+      return (
+        <Badge variant="outline" className="border-teal-300 bg-teal-50 text-teal-700">
+          <CalendarClock className="w-3 h-3 mr-1" />
+          Daily
+        </Badge>
+      )
+    }
+    return null
   }
 
   const getTimeRemaining = (schedule: ReturnSchedule) => {
@@ -251,6 +279,7 @@ export function UpcomingReturns() {
                         {schedule.vehicle.license_plate}
                       </span>
                       {getStatusBadge(schedule)}
+                      {getRentalTypeBadge(schedule.vehicle.rental_type)}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
@@ -268,8 +297,14 @@ export function UpcomingReturns() {
                   </div>
                   
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Return Date</p>
+                    <p className="text-sm text-muted-foreground">Return Date &amp; Time</p>
                     <p className="font-semibold">{format(schedule.returnDate, 'dd MMM yyyy')}</p>
+                    <p className="flex items-center justify-end gap-1 text-sm font-medium text-foreground">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      {schedule.vehicle.return_time
+                        ? format(schedule.returnDate, 'hh:mm a')
+                        : 'Time not set'}
+                    </p>
                     <p className={`text-sm font-medium mt-1 ${
                       schedule.status === 'overdue' ? 'text-red-600' :
                       schedule.status === 'due-today' ? 'text-amber-600' :
