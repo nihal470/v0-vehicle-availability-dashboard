@@ -518,6 +518,44 @@ export async function addInvoicePayment(payment: {
   if (error) throw error
 }
 
+export interface ReceiptAllocation {
+  invoice_id: string
+  amount: number
+}
+
+/**
+ * Save a receipt voucher: one payment row per allocated invoice, all sharing the
+ * same voucher reference, date, method and channel. Returns the voucher number.
+ */
+export async function saveReceiptVoucher(input: {
+  voucherNo: string
+  paymentDate: string
+  method: string
+  channel: 'Cash' | 'Bank'
+  reference?: string | null
+  notes?: string | null
+  allocations: ReceiptAllocation[]
+}): Promise<string> {
+  const supabase = createClient()
+  const rows = input.allocations
+    .filter((a) => a.amount > 0.0005)
+    .map((a) => ({
+      invoice_id: a.invoice_id,
+      payment_date: input.paymentDate,
+      amount: a.amount,
+      method: input.method,
+      channel: input.channel,
+      reference: input.reference || input.voucherNo,
+      notes: input.notes
+        ? `${input.notes} (Receipt ${input.voucherNo})`
+        : `Receipt voucher ${input.voucherNo}`,
+    }))
+  if (rows.length === 0) throw new Error('No allocations to save')
+  const { error } = await supabase.from('invoice_payments').insert(rows)
+  if (error) throw error
+  return input.voucherNo
+}
+
 export async function getInvoicePayments(invoiceId: string): Promise<InvoicePayment[]> {
   const supabase = createClient()
   const { data, error } = await supabase
