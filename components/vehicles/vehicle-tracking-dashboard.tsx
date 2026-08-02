@@ -564,16 +564,11 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
 
-                  <th className="p-3 text-left text-sm font-medium">Alert Status</th>
                   <th className="p-3 text-left text-sm font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredVehicles.map((vehicle) => {
-                  const vehicleAlerts = alerts.filter(a => a.vehicleId === vehicle.id)
-                  const hasCritical = vehicleAlerts.some(a => a.severity === 'critical')
-                  const hasWarning = vehicleAlerts.some(a => a.severity === 'warning')
-
                   return (
                     <tr key={vehicle.id} className="border-b hover:bg-muted/30">
                       <td className="p-3">
@@ -684,15 +679,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           <Badge variant="outline" className="uppercase">{vehicle.rental_type}</Badge>
                         ) : (
                           <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {hasCritical ? (
-                          <Badge variant="destructive">Critical</Badge>
-                        ) : hasWarning ? (
-                          <Badge className="bg-amber-500 hover:bg-amber-600">Warning</Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-green-100 text-green-700">OK</Badge>
                         )}
                       </td>
                       <td className="p-3">
