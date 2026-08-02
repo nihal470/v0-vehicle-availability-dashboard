@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Wrench, ArrowLeft, CheckCircle2, AlertTriangle, Clock, DollarSign } from 'lucide-react'
 import { VehicleServiceTracker } from '@/components/vehicle-service/vehicle-service-tracker'
+import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import type { ServiceRecord, Vehicle } from '@/lib/types'
 import { computeServiceStatus } from '@/lib/service-status'
 
@@ -142,6 +143,8 @@ export default async function VehicleServicePage() {
             </CardContent>
           </Card>
         </div>
+
+        <ActiveAlerts vehicles={safeVehicles} />
 
         <VehicleServiceTracker initialRecords={safeRecords} vehicles={safeVehicles} />
       </div>
