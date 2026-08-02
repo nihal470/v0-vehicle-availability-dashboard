@@ -245,3 +245,25 @@ export interface PaymentItem {
   amount: number
   created_at: string
 }
+
+// Vehicle service / maintenance tracking
+export type ServiceStatus = 'up_to_date' | 'due_soon' | 'overdue'
+
+export interface ServiceRecord {
+  id: string
+  vehicle_id: string
+  registration_number: string | null
+  service_date: string
+  odometer_reading: number | null
+  service_type: string
+  service_center: string | null
+  cost: number
+  notes: string | null
+  invoice_url: string | null
+  invoice_path: string | null
+  next_service_date: string | null
+  next_service_km: number | null
+  created_at: string
+  updated_at: string
+  vehicle?: Vehicle
+}

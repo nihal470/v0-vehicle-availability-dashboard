@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Dashboard } from '@/components/fleet/dashboard'
 import type { CategoryWithVehicles, FleetStats, Location, VehicleCategory, Vehicle, VehicleBooking } from '@/lib/types'
-import { Truck, Gauge, FileText, Car, Activity, GanttChartSquare, Building2, Wallet } from 'lucide-react'
+import { Truck, Gauge, FileText, Car, Activity, GanttChartSquare, Building2, Wallet, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
@@ -158,6 +158,17 @@ export default async function FleetPage() {
                 <Link href="/vehicle-logs">
                   <FileText className="mr-2 h-4 w-4" />
                   Logs
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-slate-300 hover:text-white hover:bg-slate-800"
+              >
+                <Link href="/vehicle-service">
+                  <Wrench className="mr-2 h-4 w-4" />
+                  Service
                 </Link>
               </Button>
               <Button
