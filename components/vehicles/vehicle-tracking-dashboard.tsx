@@ -564,8 +564,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
 
-                  <th className="p-3 text-left text-sm font-medium">Payment</th>
-                  <th className="p-3 text-left text-sm font-medium">Current KM</th>
                   <th className="p-3 text-left text-sm font-medium">Alert Status</th>
                   <th className="p-3 text-left text-sm font-medium">Actions</th>
                 </tr>
@@ -575,10 +573,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   const vehicleAlerts = alerts.filter(a => a.vehicleId === vehicle.id)
                   const hasCritical = vehicleAlerts.some(a => a.severity === 'critical')
                   const hasWarning = vehicleAlerts.some(a => a.severity === 'warning')
-                  
-                  const kmRemaining = vehicle.current_km && vehicle.next_service_km 
-                    ? vehicle.next_service_km - vehicle.current_km 
-                    : null
 
                   return (
                     <tr key={vehicle.id} className="border-b hover:bg-muted/30">
@@ -691,27 +685,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.payment_status ? (
-                          <Badge className={
-                            vehicle.payment_status === 'paid' 
-                              ? 'bg-emerald-500 hover:bg-emerald-600' 
-                              : 'bg-red-500 hover:bg-red-600'
-                          }>
-                            {vehicle.payment_status === 'paid' ? 'Paid' : 'Not Paid'}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                        {vehicle.payment_date && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {format(new Date(vehicle.payment_date), 'dd-MMM-yy')}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.current_km?.toLocaleString() ?? '-'} km
                       </td>
                       <td className="p-3">
                         {hasCritical ? (
