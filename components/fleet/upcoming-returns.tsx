@@ -17,7 +17,8 @@ import {
   AlertCircle,
   CheckCircle2,
   User,
-  FileText
+  FileText,
+  MapPin
 } from 'lucide-react'
 
 interface ReturnSchedule {
@@ -292,6 +293,11 @@ export function UpcomingReturns() {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">AG No:</span>
                         <span className="font-mono">{schedule.vehicle.ag_no || '-'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Return to:</span>
+                        <span className="font-medium">{schedule.vehicle.expected_return_location || '-'}</span>
                       </div>
                     </div>
                   </div>
