@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Vehicle } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -35,18 +35,62 @@ export function CloseAgreementModal({ vehicle, open, onOpenChange }: Props) {
   const [newStatus, setNewStatus] = useState<string>('idle')
   const [finalKm, setFinalKm] = useState(vehicle.current_km?.toString() || '')
 
+  // Re-sync form state whenever the modal opens for a (possibly different) vehicle.
+  // The modal stays mounted between uses, so without this the previous vehicle's
+  // final KM would remain cached in state.
+  useEffect(() => {
+    if (open) {
+      setFinalKm(vehicle.current_km?.toString() || '')
+      setActualReturnDate(format(new Date(), 'yyyy-MM-dd'))
+      setNewStatus('idle')
+    }
+  }, [open, vehicle.id, vehicle.current_km])
+
   const handleCloseAgreement = async () => {
     setIsLoading(true)
     try {
+      const finalKmValue = finalKm ? parseInt(finalKm) : vehicle.current_km
+
+      // Preserve the completed rental (customer + date in/out data) before the
+      // agreement fields are cleared from the vehicle.
+      const { error: historyError } = await supabase.from('rental_records').insert({
+        vehicle_id: vehicle.id,
+        license_plate: vehicle.license_plate,
+        make: vehicle.make,
+        model: vehicle.model,
+        customer_name: vehicle.customer_name,
+        ag_no: vehicle.ag_no,
+        rental_type: vehicle.rental_type,
+        date_out: vehicle.start_date,
+        date_in: actualReturnDate,
+        expected_return_date: vehicle.return_date,
+        start_km: vehicle.current_km,
+        final_km: finalKmValue,
+        total_rent: vehicle.total_rent,
+        amount_paid: vehicle.amount_paid,
+        branch: vehicle.branch,
+        expected_return_location: vehicle.expected_return_location,
+        closed_status: newStatus,
+      })
+
+      if (historyError) throw historyError
+
       const { error } = await supabase
         .from('vehicles')
         .update({
           status: newStatus,
           customer_name: null,
+          start_date: null,
           return_date: null,
+          return_time: null,
+          expected_return_location: null,
           ag_no: null,
           rental_type: null,
-          current_km: finalKm ? parseInt(finalKm) : vehicle.current_km,
+          total_rent: null,
+          amount_paid: null,
+          payment_status: null,
+          payment_date: null,
+          current_km: finalKmValue,
           updated_at: new Date().toISOString(),
         })
         .eq('id', vehicle.id)
