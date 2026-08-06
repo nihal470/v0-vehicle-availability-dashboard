@@ -15,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { RefreshCw, Car, ArrowRight, Calendar } from 'lucide-react'
 import { format, addDays } from 'date-fns'
@@ -45,9 +44,7 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
     customer_name: vehicle.customer_name || '',
     ag_no: vehicle.ag_no || '',
     // Payment for new agreement
-    payment_status: 'not_paid' as 'paid' | 'not_paid',
     payment_date: '',
-    total_rent: '',
     amount_paid: '',
   })
 
@@ -63,9 +60,7 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
         new_renewal_date: format(newEndDate, 'yyyy-MM-dd'),
         customer_name: vehicle.customer_name || '',
         ag_no: vehicle.ag_no || '',
-        payment_status: 'not_paid' as 'paid' | 'not_paid',
         payment_date: '',
-        total_rent: vehicle.total_rent?.toString() || '',
         amount_paid: '',
       })
     }
@@ -95,10 +90,8 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
           // New agreement dates
           return_date: formData.new_return_date,
           rental_renewal_date: formData.new_renewal_date,
-          // Reset payment for new agreement
-          payment_status: formData.payment_status,
+          // Record payment for new agreement
           payment_date: formData.payment_date || null,
-          total_rent: formData.total_rent ? parseFloat(formData.total_rent) : null,
           amount_paid: formData.amount_paid ? parseFloat(formData.amount_paid) : null,
           updated_at: new Date().toISOString(),
         })
@@ -222,27 +215,8 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* Payment Status */}
+          {/* Payment */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="payment_status">Payment Status</Label>
-              <Select 
-                value={formData.payment_status} 
-                onValueChange={(value) => handleInputChange('payment_status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paid">
-                    <span className="text-emerald-600 font-medium">Paid</span>
-                  </SelectItem>
-                  <SelectItem value="not_paid">
-                    <span className="text-red-600 font-medium">Not Paid</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="payment_date">Payment Date</Label>
               <Input
@@ -250,22 +224,6 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
                 type="date"
                 value={formData.payment_date}
                 onChange={(e) => handleInputChange('payment_date', e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Total Rent & Amount Paid */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="total_rent">Total Rent (OMR)</Label>
-              <Input
-                id="total_rent"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.total_rent}
-                onChange={(e) => handleInputChange('total_rent', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -281,20 +239,6 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
               />
             </div>
           </div>
-
-          {/* Balance Due */}
-          {(formData.total_rent || formData.amount_paid) && (
-            <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2.5">
-              <span className="text-sm font-medium text-muted-foreground">Balance Due</span>
-              <span className={`text-sm font-semibold ${
-                (parseFloat(formData.total_rent || '0') - parseFloat(formData.amount_paid || '0')) > 0
-                  ? 'text-red-600'
-                  : 'text-emerald-600'
-              }`}>
-                OMR {(parseFloat(formData.total_rent || '0') - parseFloat(formData.amount_paid || '0')).toFixed(2)}
-              </span>
-            </div>
-          )}
         </div>
 
         <DialogFooter className="gap-2">
