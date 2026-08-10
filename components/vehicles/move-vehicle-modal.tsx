@@ -112,15 +112,15 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90dvh] w-[calc(100%-2rem)] flex-col gap-0 p-0 sm:max-w-md">
+        <DialogHeader className="border-b px-4 py-4 sm:px-6">
           <DialogTitle>Move Vehicle</DialogTitle>
           <DialogDescription>
             Change status for {vehicle.make} {vehicle.model} ({vehicle.license_plate})
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4 sm:px-6">
           {/* Current Status */}
           <div className="rounded-lg border bg-muted/50 p-3">
             <p className="text-sm text-muted-foreground">Current Status</p>
@@ -223,12 +223,13 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 border-t px-4 py-4 sm:px-6">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            className="w-full sm:w-auto"
+            onClick={handleSubmit}
             disabled={isLoading || selectedStatus === vehicle.status}
           >
             {isLoading ? 'Moving...' : 'Move Vehicle'}
