@@ -15,11 +15,17 @@ export default async function NewPaymentPage() {
     .select('*')
     .neq('status', 'returned')
     .order('license_plate')
-  
+
+  // Fetch customer master for selection / recording
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('*')
+    .order('name')
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8">
-        <PaymentEntryForm vehicles={vehicles || []} />
+        <PaymentEntryForm vehicles={vehicles || []} customers={customers || []} />
       </div>
     </main>
   )

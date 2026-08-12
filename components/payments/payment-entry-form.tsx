@@ -21,9 +21,11 @@ import {
   FileText,
   Save,
   Printer,
-  Building2
+  Building2,
+  UserPlus
 } from 'lucide-react'
 import type { Vehicle, Payment, PaymentItem, PaymentMode } from '@/lib/types'
+import type { Customer } from '@/lib/accounting'
 
 interface PaymentItemForm {
   invoice_no: string
@@ -35,6 +37,7 @@ interface PaymentItemForm {
 
 interface Props {
   vehicles: Vehicle[]
+  customers?: Customer[]
   editPayment?: Payment | null
 }
 
@@ -46,11 +49,26 @@ const paymentModes: { value: PaymentMode; label: string }[] = [
   { value: 'online', label: 'Online' },
 ]
 
-export function PaymentEntryForm({ vehicles, editPayment }: Props) {
+export function PaymentEntryForm({ vehicles, customers = [], editPayment }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
   const [receiptNo, setReceiptNo] = useState('')
+  const [customerId, setCustomerId] = useState<string>('')
+
+  // Fill the customer fields from a selected master customer, or clear for a new one
+  const selectCustomer = (id: string) => {
+    setCustomerId(id === '__new__' ? '' : id)
+    if (id === '__new__') return
+    const c = customers.find((x) => x.id === id)
+    if (!c) return
+    setForm((prev) => ({
+      ...prev,
+      customer_name: c.name ?? '',
+      customer_phone: c.mobile ?? '',
+      customer_address: c.address ?? '',
+    }))
+  }
   
   // Form state
   const [form, setForm] = useState({
@@ -143,6 +161,21 @@ export function PaymentEntryForm({ vehicles, editPayment }: Props) {
     setIsLoading(true)
 
     try {
+      // Record a new customer in the master when one is not linked from the list
+      if (!customerId && form.customer_name.trim()) {
+        const { data: newCustomer, error: customerError } = await supabase
+          .from('customers')
+          .insert({
+            name: form.customer_name.trim(),
+            mobile: form.customer_phone || null,
+            address: form.customer_address || null,
+          })
+          .select('id')
+          .single()
+        if (customerError) throw customerError
+        if (newCustomer?.id) setCustomerId(newCustomer.id)
+      }
+
       // Create payment record
       const paymentData = {
         receipt_no: receiptNo,
@@ -244,6 +277,33 @@ export function PaymentEntryForm({ vehicles, editPayment }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="customer_select">Select Customer</Label>
+                <Select value={customerId || '__new__'} onValueChange={selectCustomer}>
+                  <SelectTrigger id="customer_select">
+                    <SelectValue placeholder="Choose a customer or add new" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__new__">
+                      <span className="flex items-center gap-2">
+                        <UserPlus className="h-4 w-4" />
+                        New / walk-in customer
+                      </span>
+                    </SelectItem>
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                        {c.mobile ? ` — ${c.mobile}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!customerId && form.customer_name && (
+                  <p className="text-xs text-muted-foreground">
+                    This customer will be added to your customer records on save.
+                  </p>
+                )}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="customer_name">Customer Name *</Label>
                 <Input
