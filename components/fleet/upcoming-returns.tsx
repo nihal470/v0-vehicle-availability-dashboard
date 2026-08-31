@@ -185,6 +185,81 @@ export function UpcomingReturns() {
   const dueTodayCount = schedules.filter(s => s.status === 'due-today').length
   const dueSoonCount = schedules.filter(s => s.status === 'due-tomorrow' || s.status === 'due-soon').length
 
+  // Split returns by branch: Salalah is shown separately on the right
+  const salalahSchedules = schedules.filter(s => s.vehicle.branch === 'Salalah')
+  const otherSchedules = schedules.filter(s => s.vehicle.branch !== 'Salalah')
+
+  const renderScheduleItem = (schedule: ReturnSchedule) => (
+    <div
+      key={schedule.vehicle.id}
+      className={`p-4 rounded-lg border-2 transition-all ${
+        schedule.status === 'overdue' 
+          ? 'border-red-400 bg-red-50 shadow-md' 
+          : schedule.status === 'due-today'
+          ? 'border-amber-400 bg-amber-50'
+          : schedule.status === 'due-tomorrow'
+          ? 'border-orange-300 bg-orange-50'
+          : schedule.status === 'due-soon'
+          ? 'border-blue-300 bg-blue-50'
+          : 'border-muted bg-background'
+      }`}
+    >
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <Car className="h-5 w-5 text-primary" />
+            <span className="font-semibold">
+              {schedule.vehicle.make} {schedule.vehicle.model}
+            </span>
+            <span className="font-mono text-sm bg-muted px-2 py-0.5 rounded">
+              {schedule.vehicle.license_plate}
+            </span>
+            {getStatusBadge(schedule)}
+            {getRentalTypeBadge(schedule.vehicle.rental_type)}
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 mt-3 text-sm">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Customer:</span>
+              <span className="font-medium">{schedule.vehicle.customer_name || '-'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">AG No:</span>
+              <span className="font-mono">{schedule.vehicle.ag_no || '-'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Return to:</span>
+              <span className="font-medium">{schedule.vehicle.expected_return_location || '-'}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="xl:text-right">
+          <p className="text-sm text-muted-foreground">Return Date &amp; Time</p>
+          <p className="font-semibold">{format(schedule.returnDate, 'dd MMM yyyy')}</p>
+          <p className="flex items-center gap-1 text-sm font-medium text-foreground xl:justify-end">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            {schedule.vehicle.return_time
+              ? format(schedule.returnDate, 'hh:mm a')
+              : 'Time not set'}
+          </p>
+          <p className={`text-sm font-medium mt-1 ${
+            schedule.status === 'overdue' ? 'text-red-600' :
+            schedule.status === 'due-today' ? 'text-amber-600' :
+            schedule.status === 'due-tomorrow' ? 'text-orange-600' :
+            schedule.status === 'due-soon' ? 'text-blue-600' :
+            'text-muted-foreground'
+          }`}>
+            {getTimeRemaining(schedule)}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <Card className="border-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -253,77 +328,48 @@ export function UpcomingReturns() {
             <p>No active rentals with scheduled returns</p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-[500px] overflow-y-auto">
-            {schedules.map((schedule) => (
-              <div
-                key={schedule.vehicle.id}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  schedule.status === 'overdue' 
-                    ? 'border-red-400 bg-red-50 shadow-md' 
-                    : schedule.status === 'due-today'
-                    ? 'border-amber-400 bg-amber-50'
-                    : schedule.status === 'due-tomorrow'
-                    ? 'border-orange-300 bg-orange-50'
-                    : schedule.status === 'due-soon'
-                    ? 'border-blue-300 bg-blue-50'
-                    : 'border-muted bg-background'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Car className="h-5 w-5 text-primary" />
-                      <span className="font-semibold">
-                        {schedule.vehicle.make} {schedule.vehicle.model}
-                      </span>
-                      <span className="font-mono text-sm bg-muted px-2 py-0.5 rounded">
-                        {schedule.vehicle.license_plate}
-                      </span>
-                      {getStatusBadge(schedule)}
-                      {getRentalTypeBadge(schedule.vehicle.rental_type)}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Customer:</span>
-                        <span className="font-medium">{schedule.vehicle.customer_name || '-'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">AG No:</span>
-                        <span className="font-mono">{schedule.vehicle.ag_no || '-'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Return to:</span>
-                        <span className="font-medium">{schedule.vehicle.expected_return_location || '-'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Return Date &amp; Time</p>
-                    <p className="font-semibold">{format(schedule.returnDate, 'dd MMM yyyy')}</p>
-                    <p className="flex items-center justify-end gap-1 text-sm font-medium text-foreground">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      {schedule.vehicle.return_time
-                        ? format(schedule.returnDate, 'hh:mm a')
-                        : 'Time not set'}
-                    </p>
-                    <p className={`text-sm font-medium mt-1 ${
-                      schedule.status === 'overdue' ? 'text-red-600' :
-                      schedule.status === 'due-today' ? 'text-amber-600' :
-                      schedule.status === 'due-tomorrow' ? 'text-orange-600' :
-                      schedule.status === 'due-soon' ? 'text-blue-600' :
-                      'text-muted-foreground'
-                    }`}>
-                      {getTimeRemaining(schedule)}
-                    </p>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Muscat & other branches */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b pb-2">
+                <h3 className="flex items-center gap-2 font-semibold">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Muscat &amp; Other Branches
+                </h3>
+                <Badge variant="secondary">{otherSchedules.length}</Badge>
               </div>
-            ))}
+              {otherSchedules.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  <Car className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No returns scheduled</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                  {otherSchedules.map(renderScheduleItem)}
+                </div>
+              )}
+            </div>
+
+            {/* Salalah branch */}
+            <div className="space-y-3 lg:border-l lg:pl-6">
+              <div className="flex items-center justify-between border-b pb-2">
+                <h3 className="flex items-center gap-2 font-semibold">
+                  <MapPin className="h-4 w-4 text-emerald-600" />
+                  Salalah Branch
+                </h3>
+                <Badge className="bg-emerald-600 hover:bg-emerald-700">{salalahSchedules.length}</Badge>
+              </div>
+              {salalahSchedules.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  <Car className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No returns scheduled</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                  {salalahSchedules.map(renderScheduleItem)}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
