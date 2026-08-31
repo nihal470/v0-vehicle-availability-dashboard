@@ -46,7 +46,6 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
     expected_return_location: '',
     ag_no: '',
     rental_type: 'monthly' as 'daily' | 'monthly',
-    rental_renewal_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     current_km: vehicle.current_km?.toString() || '',
   })
 
@@ -102,7 +101,6 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
         expected_return_location: isEdit ? (vehicle.expected_return_location || '') : '',
         ag_no: isEdit ? (vehicle.ag_no || '') : '',
         rental_type: isEdit ? ((vehicle.rental_type as 'daily' | 'monthly') || 'monthly') : 'monthly',
-        rental_renewal_date: isEdit ? (vehicle.rental_renewal_date || defaultReturn) : defaultReturn,
         current_km: vehicle.current_km?.toString() || '',
       })
     }
@@ -132,7 +130,6 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
           expected_return_location: formData.expected_return_location.trim() || null,
           ag_no: formData.ag_no.trim() || null,
           rental_type: formData.rental_type,
-          rental_renewal_date: formData.rental_renewal_date || null,
           current_km: formData.current_km ? parseInt(formData.current_km) : vehicle.current_km,
           updated_at: new Date().toISOString(),
         })
@@ -335,32 +332,21 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
             </Select>
           </div>
 
-          {/* Rental Type & Renewal Date */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="rental_type">Rental Type</Label>
-              <Select 
-                value={formData.rental_type} 
-                onValueChange={(value) => handleInputChange('rental_type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select rental type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="rental_renewal_date">Renewal Date</Label>
-              <Input
-                id="rental_renewal_date"
-                type="date"
-                value={formData.rental_renewal_date}
-                onChange={(e) => handleInputChange('rental_renewal_date', e.target.value)}
-              />
-            </div>
+          {/* Rental Type */}
+          <div className="space-y-2">
+            <Label htmlFor="rental_type">Rental Type</Label>
+            <Select 
+              value={formData.rental_type} 
+              onValueChange={(value) => handleInputChange('rental_type', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select rental type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Current KM */}
