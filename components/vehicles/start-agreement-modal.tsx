@@ -34,6 +34,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
   const [locations, setLocations] = useState<Location[]>([])
+  const [customers, setCustomers] = useState<{ id: string; name: string; mobile: string | null }[]>([])
   const [showAddLocation, setShowAddLocation] = useState(false)
   const [newLocationName, setNewLocationName] = useState('')
   const [isAddingLocation, setIsAddingLocation] = useState(false)
@@ -49,13 +50,17 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
     current_km: vehicle.current_km?.toString() || '',
   })
 
-  // Fetch locations
+  // Fetch locations and existing customers
   useEffect(() => {
-    const fetchLocations = async () => {
-      const { data } = await supabase.from('locations').select('*').order('name')
-      if (data) setLocations(data)
+    const fetchData = async () => {
+      const [{ data: locationData }, { data: customerData }] = await Promise.all([
+        supabase.from('locations').select('*').order('name'),
+        supabase.from('customers').select('id, name, mobile').order('name'),
+      ])
+      if (locationData) setLocations(locationData)
+      if (customerData) setCustomers(customerData)
     }
-    if (open) fetchLocations()
+    if (open) fetchData()
   }, [open, supabase])
 
   const handleAddLocation = async () => {
@@ -118,6 +123,22 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
 
     setIsLoading(true)
     try {
+      const trimmedName = formData.customer_name.trim()
+
+      // Auto-create the customer in the master when the entered name is new
+      const existing = customers.find(
+        (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
+      )
+      if (!existing) {
+        const { data: newCustomer, error: customerError } = await supabase
+          .from('customers')
+          .insert({ name: trimmedName })
+          .select('id, name, mobile')
+          .single()
+        if (customerError) throw customerError
+        if (newCustomer) setCustomers((prev) => [...prev, newCustomer])
+      }
+
       const { error } = await supabase
         .from('vehicles')
         .update({
@@ -187,10 +208,27 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
             <Label htmlFor="customer_name">Customer Name <span className="text-destructive">*</span></Label>
             <Input
               id="customer_name"
-              placeholder="Enter customer name"
+              list="customer-options"
+              placeholder="Select an existing customer or type a new name"
               value={formData.customer_name}
               onChange={(e) => handleInputChange('customer_name', e.target.value)}
+              autoComplete="off"
             />
+            <datalist id="customer-options">
+              {customers.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.mobile ? c.mobile : ''}
+                </option>
+              ))}
+            </datalist>
+            {formData.customer_name.trim() &&
+              !customers.some(
+                (c) => c.name.toLowerCase() === formData.customer_name.trim().toLowerCase()
+              ) && (
+                <p className="text-xs text-muted-foreground">
+                  New customer — will be added to your customer records automatically.
+                </p>
+              )}
           </div>
 
           {/* Agreement Number */}
