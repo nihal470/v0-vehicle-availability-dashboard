@@ -1,29 +1,27 @@
 'use client'
 
-import { useState } from 'react'
-import { StatsCards } from './stats-cards'
 import { ReturnsSummary } from './returns-summary'
+import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, ChevronRight, Info, Receipt } from 'lucide-react'
 import Link from 'next/link'
-import type { CategoryWithVehicles, Location, VehicleCategory, FleetStats } from '@/lib/types'
+import type { CategoryWithVehicles, Location, VehicleCategory, Vehicle } from '@/lib/types'
 
 interface DashboardProps {
   initialCategories: CategoryWithVehicles[]
   locations: Location[]
   allCategories: VehicleCategory[]
-  stats: FleetStats
+  vehicles: Vehicle[]
 }
 
 export function Dashboard({ 
   initialCategories, 
   locations, 
   allCategories,
-  stats 
+  vehicles
 }: DashboardProps) {
-  const [selectedStatus, setSelectedStatus] = useState('all')
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,17 +60,8 @@ export function Dashboard({
         </Card>
       </div>
       
-      {/* Fleet Status Overview */}
-      <div>
-        <h2 className="mb-4 text-lg font-semibold flex items-center gap-2">
-          Fleet Status Overview
-        </h2>
-        <StatsCards 
-          stats={stats} 
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-        />
-      </div>
+      {/* Insurance, Mulkiya & Service Monitoring */}
+      <ActiveAlerts vehicles={vehicles} />
 
       {/* Document Expiry Section */}
       <DocumentExpiry />
