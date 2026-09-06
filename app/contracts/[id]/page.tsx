@@ -9,6 +9,8 @@ import { CopySigningLink } from '@/components/contracts/copy-signing-link'
 
 export const dynamic = 'force-dynamic'
 
+const printStyles = `@page { size: A4; margin: 14mm 12mm; } @media print { body { background: white !important; } article { width: 100%; max-width: none; } section { break-inside: avoid; } h1, h2, h3 { break-after: avoid; } img { max-width: 100%; } }`
+
 export default async function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -25,7 +27,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
   const terms = String(contract.terms || '').split(/\n+/).filter(Boolean)
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-6 md:px-8 print:bg-white print:p-0">
+    <><style>{printStyles}</style><main className="min-h-screen bg-muted/30 px-4 py-6 md:px-8 print:bg-white print:p-0">
       <div className="mx-auto max-w-5xl">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 print:hidden">
           <Button variant="ghost" asChild><Link href="/contracts"><ArrowLeft data-icon="inline-start" /> Back to Contracts</Link></Button>
@@ -119,7 +121,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           <footer className="border-t bg-muted/30 px-6 py-5 text-center text-xs text-muted-foreground md:px-10 print:bg-white">Travz Car Rental · Official rental agreement · {contract.contract_no}</footer>
         </article>
       </div>
-    </main>
+    </main></>
   )
 }
 
