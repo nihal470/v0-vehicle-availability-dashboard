@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -43,6 +44,11 @@ export function InspectionCaptureModal({ vehicle, open, onOpenChange }: Props) {
   const [inspectionType, setInspectionType] = useState<InspectionType>('checkout')
   const [staged, setStaged] = useState<StagedPhoto[]>([])
   const [notes, setNotes] = useState('')
+  const [markDamage, setMarkDamage] = useState(false)
+  const [damageType, setDamageType] = useState('scratch')
+  const [damageSeverity, setDamageSeverity] = useState('minor')
+  const [damageLocation, setDamageLocation] = useState('')
+  const [damageDescription, setDamageDescription] = useState('')
   const [gps, setGps] = useState<GpsResult | null>(null)
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'locating' | 'done' | 'denied'>('idle')
   const [isUploading, setIsUploading] = useState(false)
@@ -64,6 +70,11 @@ export function InspectionCaptureModal({ vehicle, open, onOpenChange }: Props) {
         return []
       })
       setNotes('')
+      setMarkDamage(false)
+      setDamageType('scratch')
+      setDamageSeverity('minor')
+      setDamageLocation('')
+      setDamageDescription('')
       setGps(null)
       setGpsStatus('idle')
       setError(null)
@@ -119,7 +130,7 @@ export function InspectionCaptureModal({ vehicle, open, onOpenChange }: Props) {
 
         const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
 
-        const { error: insertError } = await supabase.from('inspection_photos').insert({
+        const { data: insertedPhoto, error: insertError } = await supabase.from('inspection_photos').insert({
           vehicle_id: vehicle.id,
           ag_no: vehicle.ag_no,
           customer_name: vehicle.customer_name,
@@ -138,8 +149,24 @@ export function InspectionCaptureModal({ vehicle, open, onOpenChange }: Props) {
           user_id: user?.id ?? null,
           user_email: user?.email ?? null,
           notes: notes.trim() || null,
-        })
+        }).select('id').single()
         if (insertError) throw insertError
+
+        if (markDamage) {
+          if (!damageLocation.trim()) throw new Error('Enter the damage location.')
+          const { error: damageError } = await supabase.from('vehicle_damages').insert({
+            vehicle_id: vehicle.id,
+            inspection_photo_id: insertedPhoto?.id ?? null,
+            inspection_type: inspectionType,
+            damage_type: damageType,
+            severity: damageSeverity,
+            location: damageLocation.trim(),
+            description: damageDescription.trim() || null,
+            photo_url: urlData.publicUrl,
+            reported_by: user?.email ?? null,
+          })
+          if (damageError) throw damageError
+        }
 
         setProgress({ done: i + 1, total: staged.length })
       }
@@ -181,6 +208,21 @@ export function InspectionCaptureModal({ vehicle, open, onOpenChange }: Props) {
                 <SelectItem value="checkin">Check-in (Vehicle Return)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+              <input type="checkbox" checked={markDamage} onChange={(e) => setMarkDamage(e.target.checked)} className="size-4 rounded border-input" />
+              Mark vehicle damage from these photos
+            </label>
+            {markDamage && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2"><Label>Damage type</Label><Select value={damageType} onValueChange={setDamageType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="scratch">Scratch</SelectItem><SelectItem value="dent">Dent</SelectItem><SelectItem value="crack">Crack</SelectItem><SelectItem value="broken_part">Broken part</SelectItem><SelectItem value="stain">Stain</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select></div>
+                <div className="space-y-2"><Label>Severity</Label><Select value={damageSeverity} onValueChange={setDamageSeverity}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="minor">Minor</SelectItem><SelectItem value="moderate">Moderate</SelectItem><SelectItem value="major">Major</SelectItem></SelectContent></Select></div>
+                <div className="space-y-2 sm:col-span-2"><Label htmlFor="damage-location">Location</Label><Input id="damage-location" value={damageLocation} onChange={(e) => setDamageLocation(e.target.value)} placeholder="e.g. Front bumper, passenger door" required={markDamage} /></div>
+                <div className="space-y-2 sm:col-span-2"><Label htmlFor="damage-description">Description</Label><Textarea id="damage-description" value={damageDescription} onChange={(e) => setDamageDescription(e.target.value)} placeholder="Describe the damage" /></div>
+              </div>
+            )}
           </div>
 
           {/* GPS status */}

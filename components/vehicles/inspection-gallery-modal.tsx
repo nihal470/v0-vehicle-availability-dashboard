@@ -26,6 +26,7 @@ interface Props {
 export function InspectionGalleryModal({ vehicle, open, onOpenChange, onAddPhotos }: Props) {
   const supabase = createClient()
   const [photos, setPhotos] = useState<InspectionPhoto[]>([])
+  const [damages, setDamages] = useState<Array<{ id: string; damage_type: string; severity: string; location: string; description: string | null; status: string }>>([])
   const [isLoading, setIsLoading] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
@@ -44,6 +45,8 @@ export function InspectionGalleryModal({ vehicle, open, onOpenChange, onAddPhoto
 
     const { data, error } = await query
     if (!error && data) setPhotos(data as InspectionPhoto[])
+    const { data: damageData } = await supabase.from('vehicle_damages').select('id, damage_type, severity, location, description, status').eq('vehicle_id', vehicle.id).order('reported_at', { ascending: false })
+    setDamages(damageData ?? [])
     setIsLoading(false)
   }, [supabase, vehicle.id, vehicle.ag_no])
 
@@ -73,9 +76,10 @@ export function InspectionGalleryModal({ vehicle, open, onOpenChange, onAddPhoto
           </DialogHeader>
 
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm text-muted-foreground">
-              {isLoading ? 'Loading…' : `${photos.length} photo${photos.length !== 1 ? 's' : ''} on record`}
-            </span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>{isLoading ? 'Loading…' : `${photos.length} photo${photos.length !== 1 ? 's' : ''} on record`}</span>
+              {damages.length > 0 && <Badge variant="destructive">{damages.length} damage{damages.length !== 1 ? 's' : ''}</Badge>}
+            </div>
             {onAddPhotos && (
               <Button size="sm" onClick={() => { onOpenChange(false); onAddPhotos() }}>
                 <Camera className="h-4 w-4 mr-1" />
@@ -83,6 +87,8 @@ export function InspectionGalleryModal({ vehicle, open, onOpenChange, onAddPhoto
               </Button>
             )}
           </div>
+
+          {damages.length > 0 && !isLoading && <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3"><p className="text-sm font-semibold">Recorded vehicle damage</p><div className="mt-2 grid gap-2 sm:grid-cols-2">{damages.map((damage) => <div key={damage.id} className="rounded-md bg-background p-2 text-sm"><div className="flex items-center justify-between gap-2"><span className="font-medium capitalize">{damage.damage_type.replace('_', ' ')}</span><Badge variant={damage.severity === 'major' ? 'destructive' : 'secondary'}>{damage.severity}</Badge></div><p className="text-muted-foreground">{damage.location}</p>{damage.description && <p className="mt-1 text-xs text-muted-foreground">{damage.description}</p>}</div>)}</div></div>}
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground">
