@@ -9,7 +9,7 @@ import { CopySigningLink } from '@/components/contracts/copy-signing-link'
 
 export const dynamic = 'force-dynamic'
 
-const printStyles = `@page { size: A4; margin: 14mm 12mm; } @media print { body { background: white !important; } article { width: 100%; max-width: none; } section { break-inside: avoid; } h1, h2, h3 { break-after: avoid; } img { max-width: 100%; } }`
+const printStyles = `@page { size: A4; margin: 12mm 12mm 16mm; } @media print { body { background: white !important; } article { width: 100%; max-width: none; box-shadow: none !important; } section { break-inside: avoid; } h1, h2, h3 { break-after: avoid; } img { max-width: 100%; } .contract-page-break { break-before: page; padding-top: 4mm; } .contract-signature { break-inside: avoid; } }`
 
 export default async function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -101,18 +101,20 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
               </div>
             </section>
 
-            <section>
+            <section className="contract-page-break">
+              <div className="mb-8 flex items-end justify-between gap-4 border-b pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Travz Car Rental</p><h2 className="mt-2 text-2xl font-bold">Rental agreement terms</h2></div><p className="font-mono text-xs text-muted-foreground">{contract.contract_no}</p></div>
               <SectionTitle eyebrow="06" title="Terms and conditions" />
               <div className="mt-4 border-y py-5 text-sm leading-7 text-muted-foreground">
                 {terms.length > 0 ? <ol className="list-decimal space-y-2 pl-5">{terms.map((term: string, index: number) => <li key={`${index}-${term}`}>{term.replace(/^\d+[.)]\s*/, '')}</li>)}</ol> : <p>No additional terms recorded.</p>}
               </div>
             </section>
 
-            <section>
+            <section className="contract-page-break">
+              <div className="mb-8 flex items-end justify-between gap-4 border-b pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Travz Car Rental</p><h2 className="mt-2 text-2xl font-bold">Acknowledgment</h2></div><p className="font-mono text-xs text-muted-foreground">{contract.contract_no}</p></div>
               <SectionTitle eyebrow="07" title="Acknowledgment and signatures" />
               <p className="mt-4 text-sm leading-7 text-muted-foreground">By signing this agreement, the renter confirms that they have read and accepted the terms and conditions, received the vehicle in the condition shown above, and agree to pay all applicable rental fees, traffic fines, and damage charges.</p>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
-                {signatories.map((signer) => <div key={signer.id} className="min-h-48 border p-5"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Customer signature</p><p className="mt-3 font-semibold">{signer.name}</p>{signer.signature_data ? <img src={signer.signature_data} alt={`${signer.name} signature`} className="mt-4 h-24 w-full object-contain object-left" /> : <div className="mt-12 border-b border-foreground/30" />}<div className="mt-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-muted-foreground">{signer.status === 'signed' ? 'Signed electronically' : 'Awaiting signature'}</p>{signer.status === 'pending' && <CopySigningLink token={signer.signing_token} />}</div></div>)}
+                {signatories.map((signer) => <div key={signer.id} className="contract-signature min-h-48 border p-5"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Customer signature</p><p className="mt-3 font-semibold">{signer.name}</p>{signer.signature_data ? <img src={signer.signature_data} alt={`${signer.name} signature`} className="mt-4 h-24 w-full object-contain object-left" /> : <div className="mt-12 border-b border-foreground/30" />}<div className="mt-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-muted-foreground">{signer.status === 'signed' ? 'Signed electronically' : 'Awaiting signature'}</p>{signer.status === 'pending' && <CopySigningLink token={signer.signing_token} />}</div></div>)}
                 <div className="min-h-48 border p-5"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Company representative</p><p className="mt-3 font-semibold">Travz Car Rental</p><div className="mt-16 border-b border-foreground/30" /><p className="mt-3 text-xs text-muted-foreground">Authorized signature</p></div>
               </div>
             </section>
