@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { PrintContractButton } from '@/components/contracts/print-contract-button'
+import { CopySigningLink } from '@/components/contracts/copy-signing-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   const customer = contract.customer as { name?: string; mobile?: string; email?: string; address?: string } | null
   const vehicle = contract.vehicle as { make?: string; model?: string; license_plate?: string; year?: string | number; color?: string } | null
-  const signatories = (contract.contract_signatories ?? []) as Array<{ id: string; name: string; role: string; mobile?: string | null; status: string; signature_data?: string | null; signed_at?: string | null }>
+  const signatories = (contract.contract_signatories ?? []) as Array<{ id: string; name: string; role: string; mobile?: string | null; signing_token: string; status: string; signature_data?: string | null; signed_at?: string | null }>
   const terms = String(contract.terms || '').split(/\n+/).filter(Boolean)
 
   return (
@@ -109,7 +110,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
               <SectionTitle eyebrow="07" title="Acknowledgment and signatures" />
               <p className="mt-4 text-sm leading-7 text-muted-foreground">By signing this agreement, the renter confirms that they have read and accepted the terms and conditions, received the vehicle in the condition shown above, and agree to pay all applicable rental fees, traffic fines, and damage charges.</p>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
-                {signatories.map((signer) => <div key={signer.id} className="min-h-48 border p-5"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Customer signature</p><p className="mt-3 font-semibold">{signer.name}</p>{signer.signature_data ? <img src={signer.signature_data} alt={`${signer.name} signature`} className="mt-4 h-24 w-full object-contain object-left" /> : <div className="mt-12 border-b border-foreground/30" />}<p className="mt-3 text-xs text-muted-foreground">{signer.status === 'signed' ? 'Signed electronically' : 'Awaiting signature'}</p></div>)}
+                {signatories.map((signer) => <div key={signer.id} className="min-h-48 border p-5"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Customer signature</p><p className="mt-3 font-semibold">{signer.name}</p>{signer.signature_data ? <img src={signer.signature_data} alt={`${signer.name} signature`} className="mt-4 h-24 w-full object-contain object-left" /> : <div className="mt-12 border-b border-foreground/30" />}<div className="mt-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-muted-foreground">{signer.status === 'signed' ? 'Signed electronically' : 'Awaiting signature'}</p>{signer.status === 'pending' && <CopySigningLink token={signer.signing_token} />}</div></div>)}
                 <div className="min-h-48 border p-5"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Company representative</p><p className="mt-3 font-semibold">Travz Car Rental</p><div className="mt-16 border-b border-foreground/30" /><p className="mt-3 text-xs text-muted-foreground">Authorized signature</p></div>
               </div>
             </section>

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { FileSignature, Loader2, Plus, Search, Eye, Printer } from 'lucide-react'
+import { FileSignature, Loader2, Plus, Search, Eye, Printer, Copy } from 'lucide-react'
 
 const statuses: ContractStatus[] = ['draft', 'sent', 'partially_signed', 'signed', 'cancelled', 'expired']
 const emptyForm = { customerId: '', vehicleId: '', startDate: '', endDate: '', pickupLocation: '', returnLocation: '', dailyRate: '', depositAmount: '', terms: 'The vehicle must be returned in the same condition. The renter is responsible for traffic fines, fuel, and damage during the rental period.', notes: '', signerName: '', signerEmail: '', signerMobile: '' }
