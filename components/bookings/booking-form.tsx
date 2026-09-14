@@ -205,13 +205,14 @@ export default function BookingForm({
         <Select
           value={formData.pickup_location_id}
           onValueChange={(value) =>
-            setFormData({ ...formData, pickup_location_id: value })
+            setFormData({ ...formData, pickup_location_id: value === '__not_provided' ? '' : value })
           }
         >
           <SelectTrigger id="pickup_location">
             <SelectValue placeholder="Select pickup location" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="__not_provided">Not provided</SelectItem>
             {locations.map((location) => (
               <SelectItem key={location.id} value={location.id}>
                 {location.name}
@@ -234,6 +235,7 @@ export default function BookingForm({
             <SelectValue placeholder="Select dropoff location" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="__not_provided">Not provided</SelectItem>
             {locations.map((location) => (
               <SelectItem key={location.id} value={location.id}>
                 {location.name}
