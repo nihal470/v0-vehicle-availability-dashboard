@@ -5,7 +5,7 @@ import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, ChevronRight, Info, Receipt } from 'lucide-react'
+import { FileText, ChevronRight, Info, Receipt, Wallet, ClipboardCheck, FileSignature, Camera, CalendarClock } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, Vehicle } from '@/lib/types'
 
@@ -14,6 +14,10 @@ interface DashboardProps {
   locations: Location[]
   allCategories: VehicleCategory[]
   vehicles: Vehicle[]
+}
+
+function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+  return <Link href={href} className="block"><Button variant="outline" className="w-full justify-start gap-2 group hover:border-primary hover:bg-primary/5">{icon}{label}</Button></Link>
 }
 
 export function Dashboard({ 
@@ -56,6 +60,13 @@ export function Dashboard({
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </Button>
             </Link>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <QuickAction href="/accounting" label="Accounting" icon={<Wallet className="h-4 w-4 text-primary" />} />
+              <QuickAction href="/bookings" label="Bookings" icon={<ClipboardCheck className="h-4 w-4 text-primary" />} />
+              <QuickAction href="/contracts" label="Contracts" icon={<FileSignature className="h-4 w-4 text-primary" />} />
+              <QuickAction href="/checkout" label="Checkout" icon={<Camera className="h-4 w-4 text-primary" />} />
+              <QuickAction href="/returns" label="Returns" icon={<CalendarClock className="h-4 w-4 text-primary" />} />
+            </div>
           </CardContent>
         </Card>
       </div>
