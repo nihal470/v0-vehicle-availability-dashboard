@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Car, Plus, LogOut, Home, Calendar, Trash2 } from 'lucide-react'
+import { Car, Plus, LogOut, Home, Calendar, Trash2, FileCheck } from 'lucide-react'
 import Link from 'next/link'
 import BookingForm from './booking-form'
 import type { Vehicle, Location, VehicleBooking } from '@/lib/types'
@@ -235,6 +235,9 @@ export default function BookingsDashboard({
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" asChild title="View confirmation">
+                            <Link href={`/bookings/${booking.id}/confirmation`}><FileCheck className="h-4 w-4" /></Link>
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
