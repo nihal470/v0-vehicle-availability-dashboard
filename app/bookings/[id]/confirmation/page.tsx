@@ -7,6 +7,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
   const { data } = await supabase.from('vehicle_bookings').select('*, vehicle:vehicles(*, category:vehicle_categories(*))').eq('id', (await params).id).single()
+  const { data: vehicles } = await supabase.from('vehicles').select('*').order('make, model')
   if (!data?.vehicle) notFound()
-  return <BookingConfirmation booking={data as never} />
+  return <BookingConfirmation booking={data as never} vehicles={(vehicles ?? []) as never} />
 }
