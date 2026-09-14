@@ -1,7 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Check, Copy, FileDown, Mail, MessageCircle, Printer } from 'lucide-react'
+import { Check, Copy, FileDown, Mail, MessageCircle, Pencil, Printer, Save, X } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { VehicleBooking, Vehicle } from '@/lib/types'
@@ -39,6 +42,28 @@ const daysBetween = (start: string, end: string) => Math.max(1, Math.ceil((new D
 
 export default function BookingConfirmation({ booking, publicView = false }: { booking: BookingConfirmationData; publicView?: boolean }) {
   const [copied, setCopied] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editError, setEditError] = useState('')
+  const [draft, setDraft] = useState<Record<string, string>>({
+    customer_name: booking.customer_name ?? '', customer_phone: booking.customer_phone ?? '',
+    start_date: booking.start_date ?? '', end_date: booking.end_date ?? '',
+    pickup_location: booking.pickup_location ?? '', dropoff_location: booking.dropoff_location ?? '',
+    airline: booking.airline ?? '', flight_number: booking.flight_number ?? '',
+    flight_arrival_time: booking.flight_arrival_time ?? '', flight_departure_time: booking.flight_departure_time ?? '',
+    notes: booking.notes ?? '', status: booking.status ?? '', payment_method: booking.payment_method ?? '',
+    payment_status: booking.payment_status ?? '', payment_reference: booking.payment_reference ?? '',
+    rental_amount: String(booking.rental_amount ?? ''), additional_charges: String(booking.additional_charges ?? ''),
+    vat: String(booking.vat ?? ''), discount: String(booking.discount ?? ''), deposit_amount: String(booking.deposit_amount ?? ''), amount_paid: String(booking.amount_paid ?? ''),
+  })
+  const updateDraft = (field: string, value: string) => setDraft((current) => ({ ...current, [field]: value }))
+  const saveBooking = async () => {
+    setSaving(true); setEditError('')
+    const numeric = (field: string) => draft[field] === '' ? null : Number(draft[field])
+    const { error } = await createClient().from('vehicle_bookings').update({ customer_name: draft.customer_name || null, customer_phone: draft.customer_phone || null, start_date: draft.start_date, end_date: draft.end_date, notes: draft.notes || null, airline: draft.airline || null, flight_number: draft.flight_number || null, flight_arrival_time: draft.flight_arrival_time || null, flight_departure_time: draft.flight_departure_time || null, status: draft.status, payment_method: draft.payment_method || null, payment_status: draft.payment_status || null, payment_reference: draft.payment_reference || null, rental_amount: numeric('rental_amount'), additional_charges: numeric('additional_charges'), vat: numeric('vat'), discount: numeric('discount'), deposit_amount: numeric('deposit_amount'), amount_paid: numeric('amount_paid') }).eq('id', booking.id)
+    if (error) setEditError(error.message); else window.location.reload()
+    setSaving(false)
+  }
   const reference = booking.booking_number ?? booking.ag_no ?? booking.id.slice(0, 8).toUpperCase()
   const days = daysBetween(booking.start_date, booking.end_date)
   const rental = Number(booking.rental_amount ?? booking.total_amount ?? 0)
@@ -54,7 +79,8 @@ export default function BookingConfirmation({ booking, publicView = false }: { b
   const email = () => { window.location.href = `mailto:${booking.customer_email ?? ''}?subject=${encodeURIComponent(`TravZ booking confirmation ${reference}`)}&body=${encodeURIComponent(summary)}` }
 
   return <div className="min-h-screen bg-muted/30 px-4 py-8 print:bg-background print:p-0"><style>{`@page { size: A4; margin: 12mm; } @media print { body { background: white; } article { max-width: none; box-shadow: none; border: 0; } section { break-inside: avoid; } }`}</style>
-    {!publicView && <div className="mx-auto mb-5 flex max-w-5xl flex-wrap justify-end gap-2 print:hidden"><Button variant="outline" onClick={copy}><Copy className="mr-2 size-4" />{copied ? 'Copied' : 'Copy confirmation'}</Button><Button variant="outline" onClick={email}><Mail className="mr-2 size-4" />Email</Button><Button variant="outline" onClick={whatsapp}><MessageCircle className="mr-2 size-4" />WhatsApp</Button><Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 size-4" />Print</Button><Button onClick={() => window.print()}><FileDown className="mr-2 size-4" />Download PDF</Button></div>}
+    {!publicView && editing && <div className="mx-auto mb-5 max-w-5xl rounded-xl border bg-background p-5 print:hidden"><div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold">Edit booking</h2><p className="text-sm text-muted-foreground">Update every customer, schedule, flight, payment, and pricing field.</p></div><Button variant="ghost" size="icon" onClick={() => setEditing(false)}><X className="size-4" /></Button></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[['customer_name','Customer name','text'],['customer_phone','Customer phone','text'],['start_date','Start date','date'],['end_date','End date','date'],['pickup_location','Pickup location','text'],['dropoff_location','Drop-off location','text'],['airline','Airline','text'],['flight_number','Flight number','text'],['flight_arrival_time','Arrival time','time'],['flight_departure_time','Departure time','time'],['status','Status','text'],['payment_method','Payment method','text'],['payment_status','Payment status','text'],['payment_reference','Payment reference','text'],['rental_amount','Rental amount','number'],['additional_charges','Additional charges','number'],['vat','VAT','number'],['discount','Discount','number'],['deposit_amount','Deposit amount','number'],['amount_paid','Amount paid','number']].map(([field,label,type]) => <label key={field} className="grid gap-1 text-sm font-medium">{label}<Input type={type} value={draft[field]} onChange={(event) => updateDraft(field, event.target.value)} /></label>)}<label className="grid gap-1 text-sm font-medium sm:col-span-2 lg:col-span-3">Notes<Textarea value={draft.notes} onChange={(event) => updateDraft('notes', event.target.value)} rows={3} /></label></div>{editError && <p className="mt-3 text-sm text-destructive">{editError}</p>}<div className="mt-4 flex justify-end gap-2"><Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button><Button onClick={saveBooking} disabled={saving}><Save className="mr-2 size-4" />{saving ? 'Saving…' : 'Save changes'}</Button></div></div>}
+    {!publicView && <div className="mx-auto mb-5 flex max-w-5xl flex-wrap justify-end gap-2 print:hidden"><Button variant="outline" onClick={() => setEditing(true)}><Pencil className="mr-2 size-4" />Edit booking</Button><Button variant="outline" onClick={copy}><Copy className="mr-2 size-4" />{copied ? 'Copied' : 'Copy confirmation'}</Button><Button variant="outline" onClick={email}><Mail className="mr-2 size-4" />Email</Button><Button variant="outline" onClick={whatsapp}><MessageCircle className="mr-2 size-4" />WhatsApp</Button><Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 size-4" />Print</Button><Button onClick={() => window.print()}><FileDown className="mr-2 size-4" />Download PDF</Button></div>}
     <article className="mx-auto max-w-5xl overflow-hidden border bg-background shadow-sm print:border-0 print:shadow-none">
       <header className="flex flex-col gap-6 border-b-4 border-primary px-7 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-12"><div><p className="text-xs font-bold uppercase tracking-[0.28em] text-primary">TravZ Car Rental</p><h1 className="mt-3 text-3xl font-bold uppercase tracking-tight">Booking confirmation</h1><p className="mt-2 max-w-xl text-sm text-muted-foreground">Dear {booking.customer_name ?? 'Customer'}, thank you for choosing TravZ Car Rental. Your reservation details are confirmed below.</p></div><div className="sm:text-right"><Badge>BOOKING {String(booking.status).toUpperCase()}</Badge><p className="mt-3 font-mono text-sm">{reference}</p><p className="mt-1 text-xs text-muted-foreground">Created {fmtDate(booking.created_at)}</p></div></header>
       <div className="space-y-8 px-7 py-8 sm:px-12"><Section title="Customer details"><Grid items={[["Name", booking.customer_name ?? 'Not provided'], ['Email', booking.customer_email ?? 'Not provided'], ['Phone', booking.customer_phone ?? 'Not provided'], ['Country', booking.customer_country ?? 'Not provided']]} /></Section>
