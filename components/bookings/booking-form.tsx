@@ -34,6 +34,10 @@ export default function BookingForm({
     vehicle_id: '',
     customer_name: '',
     customer_phone: '',
+    airline: '',
+    flight_number: '',
+    flight_arrival_time: '',
+    flight_departure_time: '',
     start_date: '',
     end_date: '',
     pickup_location_id: '',
@@ -74,6 +78,10 @@ export default function BookingForm({
           vehicle_id: formData.vehicle_id,
           customer_name: formData.customer_name || null,
           customer_phone: formData.customer_phone || null,
+          airline: formData.airline || null,
+          flight_number: formData.flight_number || null,
+          flight_arrival_time: formData.flight_arrival_time || null,
+          flight_departure_time: formData.flight_departure_time || null,
           start_date: formData.start_date,
           end_date: formData.end_date,
           pickup_location_id: formData.pickup_location_id || null,
@@ -169,6 +177,14 @@ export default function BookingForm({
             setFormData({ ...formData, customer_phone: e.target.value })
           }
         />
+      </div>
+
+      <div className="grid gap-4 rounded-xl border bg-muted/20 p-4 md:col-span-2 md:grid-cols-2">
+        <div className="md:col-span-2"><p className="text-sm font-semibold">Flight details <span className="font-normal text-muted-foreground">(optional)</span></p><p className="text-xs text-muted-foreground">Useful for airport pickup or arrival coordination.</p></div>
+        <div className="grid gap-2"><Label htmlFor="airline">Airline</Label><Input id="airline" placeholder="e.g. Oman Air" value={formData.airline} onChange={(e) => setFormData({ ...formData, airline: e.target.value })} /></div>
+        <div className="grid gap-2"><Label htmlFor="flight_number">Flight number</Label><Input id="flight_number" placeholder="e.g. WY101" value={formData.flight_number} onChange={(e) => setFormData({ ...formData, flight_number: e.target.value })} /></div>
+        <div className="grid gap-2"><Label htmlFor="flight_arrival_time">Arrival time</Label><Input id="flight_arrival_time" type="time" value={formData.flight_arrival_time} onChange={(e) => setFormData({ ...formData, flight_arrival_time: e.target.value })} /></div>
+        <div className="grid gap-2"><Label htmlFor="flight_departure_time">Departure time</Label><Input id="flight_departure_time" type="time" value={formData.flight_departure_time} onChange={(e) => setFormData({ ...formData, flight_departure_time: e.target.value })} /></div>
       </div>
 
       {/* Start Date */}

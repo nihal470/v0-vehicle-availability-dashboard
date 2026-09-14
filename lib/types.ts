@@ -169,6 +169,10 @@ export interface VehicleBooking {
   status: BookingStatus
   customer_name: string | null
   customer_phone: string | null
+  airline?: string | null
+  flight_number?: string | null
+  flight_arrival_time?: string | null
+  flight_departure_time?: string | null
   pickup_location_id: string | null
   dropoff_location_id: string | null
   notes: string | null
