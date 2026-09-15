@@ -186,6 +186,10 @@ export interface VehicleBooking {
   dropoff_time: string | null
   dropoff_date: string | null
   dropoff_notes: string | null
+  pickup_at?: string | null
+  return_at?: string | null
+  rental_amount?: number | null
+  total_rent?: number | null
   created_at: string
   updated_at: string
   vehicle?: Vehicle

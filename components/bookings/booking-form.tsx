@@ -39,7 +39,9 @@ export default function BookingForm({
     flight_arrival_time: '',
     flight_departure_time: '',
     start_date: '',
+    start_time: '09:00',
     end_date: '',
+    end_time: '09:00',
     pickup_location_id: '',
     dropoff_location_id: '',
     notes: '',
@@ -57,14 +59,16 @@ export default function BookingForm({
       return
     }
 
-    if (!formData.start_date || !formData.end_date) {
-      setError('Please select start and end dates')
+    if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) {
+      setError('Please select pickup and return dates and times')
       setIsLoading(false)
       return
     }
 
-    if (new Date(formData.end_date) < new Date(formData.start_date)) {
-      setError('End date must be after start date')
+    const pickupAt = new Date(`${formData.start_date}T${formData.start_time}:00Z`)
+    const returnAt = new Date(`${formData.end_date}T${formData.end_time}:00Z`)
+    if (returnAt <= pickupAt) {
+      setError('Return time must be after pickup time')
       setIsLoading(false)
       return
     }
@@ -72,35 +76,20 @@ export default function BookingForm({
     const supabase = createClient()
 
     try {
-      const { data, error: insertError } = await supabase
-        .from('vehicle_bookings')
-        .insert({
-          vehicle_id: formData.vehicle_id,
-          customer_name: formData.customer_name || null,
-          customer_phone: formData.customer_phone || null,
-          airline: formData.airline || null,
-          flight_number: formData.flight_number || null,
-          flight_arrival_time: formData.flight_arrival_time || null,
-          flight_departure_time: formData.flight_departure_time || null,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          pickup_location_id: formData.pickup_location_id || null,
-          dropoff_location_id: formData.dropoff_location_id || null,
-          notes: formData.notes || null,
-          status: 'booked',
-        })
-        .select(`
-          *,
-          vehicle:vehicles(
-            *,
-            category:vehicle_categories(*)
-          )
-        `)
-        .single()
+      const { data, error: insertError } = await supabase.rpc('create_vehicle_booking', {
+        p_vehicle_id: formData.vehicle_id,
+        p_pickup_at: pickupAt.toISOString(),
+        p_return_at: returnAt.toISOString(),
+        p_status: 'booked',
+        p_customer_name: formData.customer_name || null,
+        p_customer_phone: formData.customer_phone || null,
+        p_notes: formData.notes || null,
+      })
 
-      if (insertError) throw insertError
+      if (insertError) throw new Error(insertError.message.includes('already booked') ? 'This vehicle is already booked for the selected time.' : insertError.message)
 
-      onBookingCreated(data)
+      const selectedVehicle = vehicles.find((vehicle) => vehicle.id === formData.vehicle_id)
+      onBookingCreated({ ...data, vehicle: selectedVehicle } as VehicleBooking & { vehicle: Vehicle & { category: { name: string } | null } })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create booking')
     } finally {
@@ -201,9 +190,14 @@ export default function BookingForm({
         />
       </div>
 
+      <div className="grid gap-2">
+        <Label htmlFor="start_time">Pickup Time *</Label>
+        <Input id="start_time" type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} required />
+      </div>
+
       {/* End Date */}
       <div className="grid gap-2">
-        <Label htmlFor="end_date">End Date *</Label>
+        <Label htmlFor="end_date">Return Date *</Label>
         <Input
           id="end_date"
           type="date"
@@ -213,6 +207,11 @@ export default function BookingForm({
           }
           required
         />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="end_time">Return Time *</Label>
+        <Input id="end_time" type="time" value={formData.end_time} onChange={(e) => setFormData({ ...formData, end_time: e.target.value })} required />
       </div>
 
       {/* Pickup Location */}
