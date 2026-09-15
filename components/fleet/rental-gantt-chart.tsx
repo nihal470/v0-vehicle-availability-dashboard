@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, ChevronRight, Search, CalendarRange } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, CalendarRange, SlidersHorizontal, ZoomIn, ZoomOut, Maximize2, Info } from 'lucide-react'
 import {
   startOfMonth,
   endOfMonth,
@@ -93,11 +93,23 @@ export function RentalGanttChart({ vehicles }: Props) {
   }
 
   const monthLabel = format(currentMonth, 'MMMM yyyy')
+  const barClass = (status: string) => status === 'running' ? 'bg-sky-500' : status === 'reserved' ? 'bg-violet-600' : status === 'available' ? 'bg-emerald-500' : status === 'maintenance' ? 'bg-orange-500' : 'bg-slate-400'
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-t-xl border bg-background px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+          <span className="flex size-9 items-center justify-center rounded-full border text-muted-foreground"><Info className="size-4" /></span>
+          {[['running', 'Booking', 'bg-sky-500'], ['reserved', 'Reserved', 'bg-violet-600'], ['available', 'Rental', 'bg-orange-500'], ['open', 'Open', 'bg-slate-400'], ['maintenance', 'In service', 'bg-orange-500'], ['done', 'Done', 'bg-emerald-500']].map(([key, label, color]) => <button key={key} type="button" onClick={() => setStatusFilter(key === 'open' ? 'agreements' : key)} className={`rounded-full px-3 py-1 text-white ${color} ${statusFilter === key ? 'ring-2 ring-primary ring-offset-2' : ''}`}>{label}</button>)}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm"><SlidersHorizontal className="mr-2 size-4" />Filters</Button>
+          <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm text-muted-foreground"><CalendarRange className="size-4 text-primary" />{format(currentMonth, 'dd MMMM yyyy')}</div>
+          <Button variant="outline" size="icon" aria-label="Zoom in"><ZoomIn className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Zoom out"><ZoomOut className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Expand planner"><Maximize2 className="size-4" /></Button>
+        </div>
+      </div>
       {/* Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-x border-b bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -151,7 +163,7 @@ export function RentalGanttChart({ vehicles }: Props) {
       </div>
 
       {/* Gantt */}
-      <Card>
+      <Card className="overflow-hidden rounded-b-xl rounded-t-none border-t-0 shadow-sm">
         <CardContent className="p-0">
           {rows.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
@@ -163,26 +175,14 @@ export function RentalGanttChart({ vehicles }: Props) {
               <div className="min-w-[900px]">
                 {/* Header row: day numbers */}
                 <div className="flex border-b bg-muted/40">
-                  <div className="w-56 shrink-0 border-r px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="w-56 shrink-0 border-r bg-background px-4 py-3 text-xs font-semibold text-muted-foreground">
                     Vehicle
                   </div>
                   <div className="flex flex-1">
                     {days.map((day) => (
-                      <div
-                        key={day.toISOString()}
-                        className={`flex-1 border-r py-1 text-center last:border-r-0 ${
-                          isWeekend(day) ? 'bg-muted/50' : ''
-                        }`}
-                      >
-                        <div
-                          className={`mx-auto flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
-                            isToday(day)
-                              ? 'bg-primary font-bold text-primary-foreground'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          {format(day, 'd')}
-                        </div>
+                      <div key={day.toISOString()} className={`flex min-w-[52px] flex-1 flex-col items-center border-r py-2 text-center last:border-r-0 ${isWeekend(day) ? 'bg-muted/50' : ''}`}>
+                        <span className="text-[10px] font-semibold text-muted-foreground">{format(day, 'EEE')}</span>
+                        <div className={`mt-1 flex size-7 items-center justify-center rounded-full text-xs ${isToday(day) ? 'bg-primary font-bold text-primary-foreground' : 'text-foreground'}`}>{format(day, 'd')}</div>
                       </div>
                     ))}
                   </div>
@@ -197,22 +197,10 @@ export function RentalGanttChart({ vehicles }: Props) {
                   return (
                     <div key={vehicle.id} className="flex border-b last:border-b-0 hover:bg-muted/20">
                       {/* Label */}
-                      <div className="w-56 shrink-0 border-r px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-medium">
-                            {vehicle.make} {vehicle.model}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-2">
-                          <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
-                            {vehicle.license_plate}
-                          </Badge>
-                          {vehicle.customer_name && (
-                            <span className="truncate text-xs text-muted-foreground">
-                              {vehicle.customer_name}
-                            </span>
-                          )}
-                        </div>
+                      <div className="w-56 shrink-0 border-r bg-background px-4 py-3">
+                        <div className="truncate text-sm font-semibold uppercase">{vehicle.make} {vehicle.model}</div>
+                        <div className="mt-1 flex items-center gap-2"><span className="size-2 rounded-full bg-emerald-500" /><span className="text-xs text-muted-foreground">{vehicle.license_plate}</span></div>
+                        <div className="mt-1 truncate text-xs text-muted-foreground">{vehicle.customer_name ?? 'Available vehicle'}</div>
                       </div>
 
                       {/* Timeline track */}
@@ -232,7 +220,7 @@ export function RentalGanttChart({ vehicles }: Props) {
                         {/* bar */}
                         <div className="relative flex h-full items-center py-3">
                           <div
-                            className={`absolute flex h-7 items-center overflow-hidden bg-primary px-2 text-[11px] font-medium text-primary-foreground shadow-sm ${
+                            className={`absolute flex h-11 items-center overflow-hidden px-3 text-[10px] font-medium text-white shadow-sm ${barClass(vehicle.status)} ${
                               continuesLeft ? 'rounded-l-none' : 'rounded-l-md'
                             } ${continuesRight ? 'rounded-r-none' : 'rounded-r-md'}`}
                             style={{ left: `${left}%`, width: `${width}%` }}
@@ -241,10 +229,7 @@ export function RentalGanttChart({ vehicles }: Props) {
                               'MMM d'
                             )} - ${format(end as Date, 'MMM d, yyyy')}`}
                           >
-                            <span className="truncate">
-                              {vehicle.ag_no ? `${vehicle.ag_no} · ` : ''}
-                              {vehicle.customer_name ?? 'Agreement'}
-                            </span>
+                            <span className="flex min-w-0 flex-col truncate leading-tight"><strong className="truncate">{vehicle.ag_no ? `ID ${vehicle.ag_no}` : vehicle.customer_name ?? 'Rental'}</strong><span className="truncate text-[9px] opacity-90">From: {format(start as Date, 'dd.MM.yyyy/HH:mm')} · To: {format(end as Date, 'dd.MM.yyyy/HH:mm')}</span></span>
                           </div>
                         </div>
                       </div>
