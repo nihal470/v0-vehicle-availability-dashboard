@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Vehicle } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -41,8 +41,14 @@ function parseDate(value: string | null): Date | null {
 }
 
 export function RentalGanttChart({ vehicles }: Props) {
-  const [currentMonth, setCurrentMonth] = useState(() => startOfDay(new Date()))
+  const [currentMonth, setCurrentMonth] = useState(() => new Date(2000, 0, 1))
+  const [isMounted, setIsMounted] = useState(false)
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    setCurrentMonth(startOfDay(new Date()))
+    setIsMounted(true)
+  }, [])
   const [statusFilter, setStatusFilter] = useState<string>('agreements')
 
   const monthStart = useMemo(() => startOfDay(currentMonth), [currentMonth])
@@ -92,7 +98,7 @@ export function RentalGanttChart({ vehicles }: Props) {
     return { left, width, continuesLeft, continuesRight }
   }
 
-  const monthLabel = `${format(monthStart, 'dd MMMM yyyy')} – ${format(monthEnd, 'dd MMMM yyyy')}`
+  const monthLabel = isMounted ? `${format(monthStart, 'dd MMMM yyyy')} – ${format(monthEnd, 'dd MMMM yyyy')}` : 'Loading planner…'
   const barClass = (status: string) => status === 'running' ? 'bg-sky-500' : status === 'reserved' ? 'bg-violet-600' : status === 'available' ? 'bg-emerald-500' : status === 'maintenance' ? 'bg-orange-500' : 'bg-slate-400'
 
   return (
