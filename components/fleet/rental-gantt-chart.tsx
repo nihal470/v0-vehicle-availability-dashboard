@@ -52,7 +52,7 @@ export function RentalGanttChart({ vehicles }: Props) {
   }, [])
   const [statusFilter, setStatusFilter] = useState<string>('agreements')
 
-  const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth])
+  const monthStart = useMemo(() => isMounted ? startOfDay(currentMonth) : startOfMonth(currentMonth), [currentMonth, isMounted])
   const monthEnd = useMemo(() => endOfMonth(currentMonth), [currentMonth])
   const days = useMemo(
     () => eachDayOfInterval({ start: monthStart, end: monthEnd }),
