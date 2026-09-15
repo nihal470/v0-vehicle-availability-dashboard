@@ -15,8 +15,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, Search, CalendarRange, SlidersHorizontal, ZoomIn, ZoomOut, Maximize2, Info } from 'lucide-react'
 import {
-  startOfMonth,
-  endOfMonth,
+  startOfDay,
+  addDays,
   eachDayOfInterval,
   format,
   addMonths,
@@ -41,12 +41,12 @@ function parseDate(value: string | null): Date | null {
 }
 
 export function RentalGanttChart({ vehicles }: Props) {
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
+  const [currentMonth, setCurrentMonth] = useState(() => startOfDay(new Date()))
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('agreements')
 
-  const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth])
-  const monthEnd = useMemo(() => endOfMonth(currentMonth), [currentMonth])
+  const monthStart = useMemo(() => startOfDay(currentMonth), [currentMonth])
+  const monthEnd = useMemo(() => addDays(monthStart, 30), [monthStart])
   const days = useMemo(
     () => eachDayOfInterval({ start: monthStart, end: monthEnd }),
     [monthStart, monthEnd]
@@ -92,7 +92,7 @@ export function RentalGanttChart({ vehicles }: Props) {
     return { left, width, continuesLeft, continuesRight }
   }
 
-  const monthLabel = format(currentMonth, 'MMMM yyyy')
+  const monthLabel = `${format(monthStart, 'dd MMMM yyyy')} – ${format(monthEnd, 'dd MMMM yyyy')}`
   const barClass = (status: string) => status === 'running' ? 'bg-sky-500' : status === 'reserved' ? 'bg-violet-600' : status === 'available' ? 'bg-emerald-500' : status === 'maintenance' ? 'bg-orange-500' : 'bg-slate-400'
 
   return (
@@ -104,7 +104,7 @@ export function RentalGanttChart({ vehicles }: Props) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm"><SlidersHorizontal className="mr-2 size-4" />Filters</Button>
-          <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm text-muted-foreground"><CalendarRange className="size-4 text-primary" />{format(currentMonth, 'dd MMMM yyyy')}</div>
+          <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm text-muted-foreground"><CalendarRange className="size-4 text-primary" />{monthLabel}</div>
           <Button variant="outline" size="icon" aria-label="Zoom in"><ZoomIn className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Zoom out"><ZoomOut className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Expand planner"><Maximize2 className="size-4" /></Button>
         </div>
       </div>
@@ -134,7 +134,7 @@ export function RentalGanttChart({ vehicles }: Props) {
             variant="ghost"
             size="sm"
             className="ml-1"
-            onClick={() => setCurrentMonth(startOfMonth(new Date()))}
+            onClick={() => setCurrentMonth(startOfDay(new Date()))}
           >
             Today
           </Button>
