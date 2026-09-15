@@ -16,7 +16,8 @@ import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, Search, CalendarRange, SlidersHorizontal, ZoomIn, ZoomOut, Maximize2, Info } from 'lucide-react'
 import {
   startOfDay,
-  addDays,
+  startOfMonth,
+  endOfMonth,
   eachDayOfInterval,
   format,
   addMonths,
@@ -41,18 +42,18 @@ function parseDate(value: string | null): Date | null {
 }
 
 export function RentalGanttChart({ vehicles }: Props) {
-  const [currentMonth, setCurrentMonth] = useState(() => new Date(2000, 0, 1))
+  const [currentMonth, setCurrentMonth] = useState(() => new Date(2026, 9, 1))
   const [isMounted, setIsMounted] = useState(false)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    setCurrentMonth(startOfDay(new Date()))
+    setCurrentMonth(new Date(2026, 9, 1))
     setIsMounted(true)
   }, [])
   const [statusFilter, setStatusFilter] = useState<string>('agreements')
 
-  const monthStart = useMemo(() => startOfDay(currentMonth), [currentMonth])
-  const monthEnd = useMemo(() => addDays(monthStart, 30), [monthStart])
+  const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth])
+  const monthEnd = useMemo(() => endOfMonth(currentMonth), [currentMonth])
   const days = useMemo(
     () => eachDayOfInterval({ start: monthStart, end: monthEnd }),
     [monthStart, monthEnd]
