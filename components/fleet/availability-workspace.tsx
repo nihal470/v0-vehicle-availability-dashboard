@@ -6,7 +6,7 @@ import { CalendarDays, LayoutDashboard, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-type Vehicle = { id: string; make: string; model: string; license_plate: string | null; status: string; category_id: string | null; category: { id: string; name: string } | null }
+type Vehicle = { id: string; make: string; model: string; license_plate: string | null; status: string; category_id: string | null; customer_name: string | null; start_date: string | null; return_date: string | null; return_time: string | null; ag_no: string | null; total_rent: number | null; category: { id: string; name: string } | null }
 type Booking = { id: string; vehicle_id: string; customer_name: string | null; status: string; pickup_at: string | null; return_at: string | null; start_date: string; end_date: string }
 
 type CellStatus = 'A' | 'OT' | 'R' | 'B'
@@ -38,7 +38,11 @@ export function AvailabilityWorkspace({ vehicles, categories, bookings }: { vehi
   }, [from, to])
   const firstDay = days[0] ?? new Date(`${from}T12:00:00`)
   const filteredVehicles = useMemo(() => vehicles.filter((vehicle) => (category === 'all' || vehicle.category_id === category) && `${vehicle.make} ${vehicle.model} ${vehicle.license_plate ?? ''}`.toLowerCase().includes(search.toLowerCase()) && (country === 'all' || vehicle.category?.name === country)), [vehicles, category, search, country])
-  const getCell = (vehicle: Vehicle, day: Date): CellStatus => { if (blockedStatuses.has(vehicle.status)) return 'B'; const dayStart = new Date(`${dateKey(day)}T00:00:00Z`); const dayEnd = new Date(`${dateKey(day)}T23:59:59Z`); const booking = bookings.find((item) => item.vehicle_id === vehicle.id && activeStatuses.has(item.status) && new Date(item.pickup_at ?? `${item.start_date}T00:00:00Z`) < dayEnd && new Date(item.return_at ?? `${item.end_date}T23:59:59Z`) > dayStart); if (!booking) return 'A'; return booking.status === 'reserved' ? 'R' : 'OT' }
+  const getCell = (vehicle: Vehicle, day: Date): CellStatus => { if (blockedStatuses.has(vehicle.status)) return 'B'; const dayStart = new Date(`${dateKey(day)}T00:00:00Z`); const dayEnd = new Date(`${dateKey(day)}T23:59:59Z`); const booking = bookings.find((item) => item.vehicle_id === vehicle.id && activeStatuses.has(item.status) && new Date(item.pickup_at ?? `${item.start_date}T00:00:00Z`) < dayEnd && new Date(item.return_at ?? `${item.end_date}T23:59:59Z`) > dayStart)
+    if (booking) return booking.status === 'reserved' ? 'R' : 'OT'
+    if (vehicle.status === 'running' && vehicle.return_date && vehicle.return_date >= dateKey(day)) return 'OT'
+    if (vehicle.status === 'reserved') return 'R'
+    return 'A' }
   const counts = useMemo(() => filteredVehicles.reduce((result, vehicle) => { result[getCell(vehicle, firstDay)] += 1; return result }, { A: 0, OT: 0, R: 0, B: 0 } as Record<CellStatus, number>), [filteredVehicles, firstDay, bookings])
   const bookingHref = (vehicle: Vehicle) => `/bookings?vehicle_id=${encodeURIComponent(vehicle.id)}&start_date=${from}&end_date=${to}`
 
