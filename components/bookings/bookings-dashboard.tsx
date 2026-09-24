@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -42,6 +42,16 @@ export default function BookingsDashboard({
   const [bookings, setBookings] = useState(initialBookings)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const supabase = createClient()
+    const refreshBookings = async () => {
+      const { data } = await supabase.from('vehicle_bookings').select('*, vehicle:vehicles(*, category:vehicle_categories(*))').order('created_at', { ascending: false })
+      if (data) setBookings(data as BookingWithVehicle[])
+    }
+    const channel = supabase.channel('bookings-dashboard-sync').on('postgres_changes', { event: '*', schema: 'public', table: 'vehicle_bookings' }, refreshBookings).subscribe()
+    return () => { void supabase.removeChannel(channel) }
+  }, [])
 
   const handleSignOut = async () => {
     const supabase = createClient()
