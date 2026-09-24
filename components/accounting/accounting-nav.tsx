@@ -9,13 +9,15 @@ import {
   Users,
   FileText,
   ReceiptText,
+  CreditCard,
   Home,
 } from 'lucide-react'
 
 const LINKS = [
   { href: '/accounting', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/outstanding', label: 'Outstanding', icon: Wallet },
-  { href: '/receipts/new', label: 'Receipt', icon: ReceiptText },
+  { href: '/payments', label: 'Payments', icon: CreditCard },
+  { href: '/receipts/new', label: 'Receipts', icon: ReceiptText },
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/invoices', label: 'Invoices', icon: FileText },
 ]

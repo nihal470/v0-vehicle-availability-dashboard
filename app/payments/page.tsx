@@ -1,4 +1,5 @@
 import { PaymentsList } from '@/components/payments/payments-list'
+import { AccountingNav } from '@/components/accounting/accounting-nav'
 import { Suspense } from 'react'
 
 // Disable caching for real-time data
@@ -12,12 +13,13 @@ export const metadata = {
 
 export default function PaymentsPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-muted/30">
+      <AccountingNav />
+      <main className="mx-auto max-w-[1400px] px-6 py-8">
         <Suspense fallback={<div>Loading...</div>}>
           <PaymentsList />
         </Suspense>
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }
