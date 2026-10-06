@@ -92,6 +92,17 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const router = useRouter()
 
   // Handle marking a leased vehicle as returned
+  const handleRemoveCancelledVehicle = async (vehicle: Vehicle) => {
+    if (!confirm(`Remove ${vehicle.make} ${vehicle.model} (${vehicle.license_plate}) from the active fleet? The vehicle will be archived and its history will be retained.`)) return
+    const { error } = await supabase.from('vehicles').update({ status: 'archived', updated_at: new Date().toISOString() }).eq('id', vehicle.id)
+    if (error) {
+      console.error('Error archiving vehicle:', error)
+      alert('Failed to remove the vehicle. Please try again.')
+      return
+    }
+    router.refresh()
+  }
+
   const handleMarkAsReturned = async (vehicle: Vehicle) => {
     if (!confirm(`Are you sure you want to mark "${vehicle.make} ${vehicle.model}" (${vehicle.license_plate}) as returned?\n\nThis will:\n- Change status to Inactive\n- Exclude from Active Fleet count\n- Hide from operational dashboards\n\nAll history will be retained for audit purposes.`)) {
       return
@@ -123,11 +134,9 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   }
 
   // Filter out returned vehicles for active fleet
-  const activeVehicles = useMemo(() => 
-    vehicles.filter(v => v.status !== 'returned'), [vehicles])
-  
-  const returnedVehicles = useMemo(() => 
-    vehicles.filter(v => v.status === 'returned'), [vehicles])
+  const archivedVehicles = useMemo(() => vehicles.filter(v => v.status === 'archived'), [vehicles])
+  const activeVehicles = useMemo(() => vehicles.filter(v => v.status !== 'returned' && v.status !== 'archived'), [vehicles])
+  const returnedVehicles = useMemo(() => vehicles.filter(v => v.status === 'returned'), [vehicles])
 
   const alerts = useMemo(() => generateAlerts(activeVehicles), [activeVehicles])
   
@@ -613,16 +622,22 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                               )}
 
                               {/* Mark as Returned - only for leased vehicles that are not running */}
-                              {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
+                              {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && vehicle.status !== 'archived' && (
                                 <DropdownMenuItem
                                   variant="destructive"
                                   onClick={() => handleMarkAsReturned(vehicle)}
                                 >
                                   <LogOut className="h-4 w-4" />
                                   Return
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
+  </DropdownMenuItem>
+  )}
+  {vehicle.status === 'returned' && (
+    <DropdownMenuItem variant="destructive" onClick={() => handleRemoveCancelledVehicle(vehicle)}>
+      <Archive className="h-4 w-4" />
+      Remove returned vehicle
+    </DropdownMenuItem>
+  )}
+  </DropdownMenuContent>
                           </DropdownMenu>
 
                           {/* Returned badge for returned vehicles */}

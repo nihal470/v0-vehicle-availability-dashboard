@@ -1,4 +1,4 @@
-export type VehicleStatus = 'available' | 'running' | 'idle' | 'garage' | 'maintenance' | 'returned'
+export type VehicleStatus = 'available' | 'running' | 'idle' | 'garage' | 'maintenance' | 'returned' | 'archived'
 export type BookingStatus = 'booked' | 'completed' | 'cancelled'
 export type Branch = 'Muscat' | 'Salalah'
 export const BRANCHES: Branch[] = ['Muscat', 'Salalah']
