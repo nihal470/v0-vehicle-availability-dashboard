@@ -300,18 +300,16 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
               <span className="text-xs">Maintenance</span>
             </Button>
             
-            {/* Returned (Inactive) - Only show if there are returned vehicles */}
-            {statusCounts.returned > 0 && (
-              <Button
-                variant={statusFilter === 'returned' ? 'default' : 'outline'}
-                className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'returned' ? 'bg-rose-600 hover:bg-rose-700' : 'border-rose-500/50 text-rose-700 hover:bg-rose-50'}`}
-                onClick={() => setStatusFilter('returned')}
-              >
-                <Archive className="h-6 w-6" />
-                <span className="text-lg font-bold">{statusCounts.returned}</span>
-                <span className="text-xs">Returned</span>
-              </Button>
-            )}
+            {/* Returned vehicles can be selected to reveal the archive action in each row */}
+            <Button
+              variant={statusFilter === 'returned' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'returned' ? 'bg-rose-600 hover:bg-rose-700' : 'border-rose-500/50 text-rose-700 hover:bg-rose-50'}`}
+              onClick={() => setStatusFilter('returned')}
+            >
+              <Archive className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.returned}</span>
+              <span className="text-xs">Returned / Remove</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -358,7 +356,10 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       {/* Vehicle List */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Vehicle Details & Tracking</CardTitle>
+          <div>
+            <CardTitle>Vehicle Details & Tracking</CardTitle>
+            {statusFilter === 'returned' && <p className="mt-1 text-sm text-muted-foreground">Select the three-dot menu on a returned vehicle, then choose “Remove returned vehicle”.</p>}
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setShowBulkUpdateModal(true)}>
               <ListChecks className="mr-2 h-4 w-4" />
