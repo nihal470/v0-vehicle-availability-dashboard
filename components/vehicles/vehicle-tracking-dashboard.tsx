@@ -359,6 +359,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
           <div>
             <CardTitle>Vehicle Details & Tracking</CardTitle>
             {statusFilter === 'returned' && <p className="mt-1 text-sm text-muted-foreground">Select the three-dot menu on a returned vehicle, then choose “Remove returned vehicle”.</p>}
+            {statusFilter !== 'returned' && <p className="mt-1 text-sm text-muted-foreground">For an owned vehicle, open the three-dot menu and choose “Remove owned vehicle” to archive it while keeping its history.</p>}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setShowBulkUpdateModal(true)}>
@@ -636,6 +637,12 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
     <DropdownMenuItem variant="destructive" onClick={() => handleRemoveCancelledVehicle(vehicle)}>
       <Archive className="h-4 w-4" />
       Remove returned vehicle
+    </DropdownMenuItem>
+  )}
+  {vehicle.ownership_type === 'owned' && vehicle.status !== 'archived' && vehicle.status !== 'returned' && (
+    <DropdownMenuItem variant="destructive" onClick={() => handleRemoveCancelledVehicle(vehicle)}>
+      <Archive className="h-4 w-4" />
+      Remove owned vehicle
     </DropdownMenuItem>
   )}
   </DropdownMenuContent>
