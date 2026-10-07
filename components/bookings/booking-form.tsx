@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { TimeSelect } from '@/components/ui/time-select'
 import {
   Select,
   SelectContent,
@@ -183,8 +184,8 @@ export default function BookingForm({
         <div className="md:col-span-2"><p className="text-sm font-semibold">Flight details <span className="font-normal text-muted-foreground">(optional)</span></p><p className="text-xs text-muted-foreground">Useful for airport pickup or arrival coordination.</p></div>
         <div className="grid gap-2"><Label htmlFor="airline">Airline</Label><Input id="airline" placeholder="e.g. Oman Air" value={formData.airline} onChange={(e) => setFormData({ ...formData, airline: e.target.value })} /></div>
         <div className="grid gap-2"><Label htmlFor="flight_number">Flight number</Label><Input id="flight_number" placeholder="e.g. WY101" value={formData.flight_number} onChange={(e) => setFormData({ ...formData, flight_number: e.target.value })} /></div>
-        <div className="grid gap-2"><Label htmlFor="flight_arrival_time">Arrival time</Label><Input id="flight_arrival_time" type="time" value={formData.flight_arrival_time} onChange={(e) => setFormData({ ...formData, flight_arrival_time: e.target.value })} /></div>
-        <div className="grid gap-2"><Label htmlFor="flight_departure_time">Departure time</Label><Input id="flight_departure_time" type="time" value={formData.flight_departure_time} onChange={(e) => setFormData({ ...formData, flight_departure_time: e.target.value })} /></div>
+        <div className="grid gap-2"><Label htmlFor="flight_arrival_time">Arrival time</Label><TimeSelect id="flight_arrival_time" value={formData.flight_arrival_time} onChange={(value) => setFormData({ ...formData, flight_arrival_time: value })} /></div>
+        <div className="grid gap-2"><Label htmlFor="flight_departure_time">Departure time</Label><TimeSelect id="flight_departure_time" value={formData.flight_departure_time} onChange={(value) => setFormData({ ...formData, flight_departure_time: value })} /></div>
       </div>
 
       {/* Start Date */}
@@ -203,7 +204,7 @@ export default function BookingForm({
 
       <div className="grid gap-2">
         <Label htmlFor="start_time">Pickup Time *</Label>
-        <Input id="start_time" type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} required />
+        <TimeSelect id="start_time" value={formData.start_time} onChange={(value) => setFormData({ ...formData, start_time: value })} placeholder="Select pickup time" />
       </div>
 
       {/* End Date */}
@@ -222,7 +223,7 @@ export default function BookingForm({
 
       <div className="grid gap-2">
         <Label htmlFor="end_time">Return Time *</Label>
-        <Input id="end_time" type="time" value={formData.end_time} onChange={(e) => setFormData({ ...formData, end_time: e.target.value })} required />
+        <TimeSelect id="end_time" value={formData.end_time} onChange={(value) => setFormData({ ...formData, end_time: value })} placeholder="Select return time" />
       </div>
 
       {/* Pickup Location */}
