@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +30,9 @@ export default function BookingForm({
   onCancel,
 }: BookingFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [step, setStep] = useState<1 | 2>(1)
+  const [vehicleType, setVehicleType] = useState('all')
+  const [availableVehicles, setAvailableVehicles] = useState<typeof vehicles>(vehicles)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     vehicle_id: '',
@@ -98,8 +101,23 @@ export default function BookingForm({
     }
   }
 
+  const categories = Array.from(new Set(vehicles.map((vehicle) => vehicle.category?.name).filter(Boolean))) as string[]
+
+  useEffect(() => {
+    if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) return
+    const pickupAt = new Date(`${formData.start_date}T${formData.start_time}:00Z`).toISOString()
+    const returnAt = new Date(`${formData.end_date}T${formData.end_time}:00Z`).toISOString()
+    const refreshAvailability = async () => {
+      const supabase = createClient()
+      const { data: conflicts } = await supabase.from('vehicle_bookings').select('vehicle_id').not('status', 'in', '(cancelled,completed)').lt('pickup_at', returnAt).gt('return_at', pickupAt)
+      const blockedIds = new Set((conflicts ?? []).map((booking) => booking.vehicle_id))
+      setAvailableVehicles(vehicles.filter((vehicle) => !blockedIds.has(vehicle.id) && (vehicleType === 'all' || vehicle.category?.name === vehicleType) && !['maintenance', 'garage', 'archived', 'inactive'].includes(vehicle.status)))
+    }
+    void refreshAvailability()
+  }, [formData.start_date, formData.end_date, formData.start_time, formData.end_time, vehicleType, vehicles])
+
   // Group vehicles by category
-  const vehiclesByCategory = vehicles.reduce(
+  const vehiclesByCategory = availableVehicles.reduce(
     (acc, vehicle) => {
       const categoryName = vehicle.category?.name || 'Uncategorized'
       if (!acc[categoryName]) {
@@ -119,39 +137,21 @@ export default function BookingForm({
       <header className="border-b px-5 py-4 sm:px-8">
         <div className="flex items-center justify-between"><div><p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">TravZ Fleet</p><h2 className="text-xl font-semibold tracking-tight">New Booking</h2></div><button type="button" onClick={onCancel} aria-label="Close booking form" className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground">×</button></div>
         <div className="mt-6 flex items-start justify-between gap-2 overflow-x-auto pb-1">
-          {['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'].map((step, index) => <div key={step} className="flex min-w-[92px] flex-1 items-start gap-2"><div className="flex flex-1 flex-col items-center gap-2"><span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${index === 0 ? 'bg-sky-500 text-white ring-4 ring-sky-100' : 'bg-muted text-muted-foreground'}`}>{index + 1}</span><span className={`text-center text-xs ${index === 0 ? 'font-medium text-sky-600' : 'text-muted-foreground'}`}>{step}</span></div>{index < 5 && <span className="mt-5 h-px min-w-8 flex-1 border-t border-dashed border-muted-foreground/40" />}</div>)}
+          {['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'].map((stepName, index) => <div key={stepName} className="flex min-w-[92px] flex-1 items-start gap-2"><div className="flex flex-1 flex-col items-center gap-2"><span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${index < step ? 'bg-sky-500 text-white ring-4 ring-sky-100' : 'bg-muted text-muted-foreground'}`}>{index + 1}</span><span className={`text-center text-xs ${index === step - 1 ? 'font-medium text-sky-600' : 'text-muted-foreground'}`}>{stepName}</span></div>{index < 5 && <span className="mt-5 h-px min-w-8 flex-1 border-t border-dashed border-muted-foreground/40" />}</div>)}
         </div>
       </header>
       <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_348px]">
         <section><h3 className="mb-5 text-lg font-semibold">Booking Details</h3><div className="grid gap-5 sm:grid-cols-2">
-      {/* Vehicle Selection */}
+      {/* Vehicle Type */}
       <div className="grid gap-2">
-        <Label htmlFor="vehicle">Vehicle *</Label>
-        <Select
-          value={formData.vehicle_id}
-          onValueChange={(value) =>
-            setFormData({ ...formData, vehicle_id: value })
-          }
-        >
-          <SelectTrigger id="vehicle">
-            <SelectValue placeholder="Select a vehicle" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(vehiclesByCategory).map(([category, categoryVehicles]) => (
-              <div key={category}>
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                  {category}
-                </div>
-                {categoryVehicles.map((vehicle) => (
-                  <SelectItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.make} {vehicle.model} - {vehicle.license_plate}
-                  </SelectItem>
-                ))}
-              </div>
-            ))}
-          </SelectContent>
+        <Label htmlFor="vehicle_type">Vehicle Type</Label>
+        <Select value={vehicleType} onValueChange={(value) => { setVehicleType(value); setFormData({ ...formData, vehicle_id: '' }) }}>
+          <SelectTrigger id="vehicle_type"><SelectValue placeholder="Select vehicle type" /></SelectTrigger>
+          <SelectContent><SelectItem value="all">All vehicle types</SelectItem>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
         </Select>
       </div>
+
+      {step === 2 && <div className="grid gap-2 sm:col-span-2"><Label htmlFor="vehicle">Available Vehicle *</Label><Select value={formData.vehicle_id} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })}><SelectTrigger id="vehicle"><SelectValue placeholder={`${availableVehicles.length} vehicles available`} /></SelectTrigger><SelectContent>{Object.entries(vehiclesByCategory).map(([category, categoryVehicles]) => <div key={category}><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>{categoryVehicles.map((vehicle) => <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.make} {vehicle.model} - {vehicle.license_plate}</SelectItem>)}</div>)}</SelectContent></Select><p className="text-xs text-muted-foreground">Showing vehicles available for the selected pickup and return period.</p></div>}
 
       {/* Customer Name */}
       <div className="grid gap-2">
@@ -289,7 +289,7 @@ export default function BookingForm({
       )}
 
       <div className="flex flex-wrap gap-3 pt-2 sm:col-span-2">
-        <Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button>
+        {step === 1 ? <Button type="button" onClick={() => { if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) { setError('Please select pickup and return dates and times'); return } if (new Date(`${formData.end_date}T${formData.end_time}:00Z`) <= new Date(`${formData.start_date}T${formData.start_time}:00Z`)) { setError('Return time must be after pickup time'); return } setError(null); setStep(2) }}>Next: Select Vehicle</Button> : <><Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button><Button type="button" variant="outline" onClick={() => setStep(1)}>Previous</Button></>}
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
         </div></section>
@@ -297,7 +297,7 @@ export default function BookingForm({
           <div className="rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/70 p-5"><div className="flex items-center gap-2 text-sm font-medium text-slate-600"><span className="text-lg">◷</span> Total Duration</div><p className="mt-2 text-3xl font-bold text-indigo-600">{durationDays} Days</p><p className="mt-1 text-xs text-muted-foreground">Pickup: {formData.start_date || '----'} · Drop: {formData.end_date || '----'}</p></div>
           <div className="rounded-xl border-2 border-dashed p-5"><h3 className="font-semibold">Price Details</h3><div className="mt-5 space-y-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Base Price ({durationDays} days)</span><span>₹0</span></div><div className="flex justify-between"><span className="text-muted-foreground">Extras</span><span>₹0</span></div><div className="flex justify-between"><span className="text-muted-foreground">GST (18%)</span><span>₹0</span></div><div className="flex justify-between border-t border-dashed pt-4 font-bold"><span>Total Amount</span><span className="text-lg text-sky-500">₹0</span></div></div></div>
           <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/70 p-5"><p className="font-medium text-emerald-700">Security Deposit</p><p className="mt-2 text-xl font-bold text-emerald-600">₹5,000</p><p className="mt-1 text-xs text-emerald-700/80">Refundable after return</p></div>
-          <div className="rounded-xl border-2 border-dashed border-violet-200 bg-violet-50/60 p-5"><p className="text-xs font-medium uppercase tracking-wide text-violet-600">Current Step</p><p className="mt-1 font-semibold">Booking Details</p>{selectedVehicle && <p className="mt-2 text-sm text-muted-foreground">{selectedVehicle.make} {selectedVehicle.model}</p>}</div>
+          <div className="rounded-xl border-2 border-dashed border-violet-200 bg-violet-50/60 p-5"><p className="text-xs font-medium uppercase tracking-wide text-violet-600">Current Step</p><p className="mt-1 font-semibold">{step === 1 ? 'Booking Details' : 'Select Vehicle'}</p>{selectedVehicle && <p className="mt-2 text-sm text-muted-foreground">{selectedVehicle.make} {selectedVehicle.model}</p>}</div>
         </aside>
       </div>
     </form>
