@@ -30,7 +30,7 @@ export default function BookingForm({
   onCancel,
 }: BookingFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<number>(1)
   const [vehicleType, setVehicleType] = useState('all')
   const [availableVehicles, setAvailableVehicles] = useState<typeof vehicles>(vehicles)
   const [error, setError] = useState<string | null>(null)
@@ -141,7 +141,7 @@ export default function BookingForm({
         </div>
       </header>
       <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_348px]">
-        <section><h3 className="mb-5 text-lg font-semibold">Booking Details</h3><div className="grid gap-5 sm:grid-cols-2">
+        <section><h3 className="mb-5 text-lg font-semibold">{step === 1 ? 'Booking Details' : step === 2 ? 'Select Vehicle' : 'Customer Details'}</h3><div className="grid gap-5 sm:grid-cols-2">
       {/* Vehicle Type */}
       <div className="grid gap-2">
         <Label htmlFor="vehicle_type">Vehicle Type</Label>
