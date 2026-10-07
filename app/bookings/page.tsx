@@ -28,6 +28,11 @@ export default async function BookingsPage() {
     .select('*')
     .order('name', { ascending: true })
 
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('id, name, mobile, email')
+    .order('name', { ascending: true })
+
   // Fetch all bookings
   const { data: bookings } = await supabase
     .from('vehicle_bookings')
@@ -44,6 +49,7 @@ export default async function BookingsPage() {
     <BookingsDashboard
       vehicles={vehicles || []}
       locations={locations || []}
+      customers={customers || []}
       bookings={bookings || []}
       userEmail={user.email || ''}
     />

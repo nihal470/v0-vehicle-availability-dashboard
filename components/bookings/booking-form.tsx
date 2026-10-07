@@ -19,6 +19,7 @@ import type { Vehicle, Location, VehicleBooking } from '@/lib/types'
 interface BookingFormProps {
   vehicles: (Vehicle & { category: { name: string } | null })[]
   locations: Location[]
+  customers: { id: string; name: string; mobile: string | null; email: string | null }[]
   onBookingCreated: (booking: VehicleBooking & { vehicle: Vehicle & { category: { name: string } | null } }) => void
   onCancel: () => void
 }
@@ -26,6 +27,7 @@ interface BookingFormProps {
 export default function BookingForm({
   vehicles,
   locations,
+  customers,
   onBookingCreated,
   onCancel,
 }: BookingFormProps) {
@@ -158,7 +160,7 @@ export default function BookingForm({
       <div className="grid gap-2 sm:col-span-2"><p className="text-sm font-semibold">Customer Details</p><p className="text-xs text-muted-foreground">Choose an existing customer or enter a new customer record below.</p></div>
       <div className="grid gap-2">
         <Label htmlFor="customer_record">Customer record</Label>
-        <Select value={formData.customer_name ? 'new' : ''} onValueChange={(value) => { if (value === 'existing') setFormData({ ...formData, customer_name: '' }); else setFormData({ ...formData, customer_name: '' }) }}><SelectTrigger id="customer_record"><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent><SelectItem value="existing">Existing Customer — Select from records</SelectItem><SelectItem value="new">New Customer — Add new record</SelectItem></SelectContent></Select>
+        <Select value={customers.some((customer) => customer.name === formData.customer_name) ? formData.customer_name : formData.customer_name ? 'new' : ''} onValueChange={(value) => { const customer = customers.find((item) => item.name === value); setFormData({ ...formData, customer_name: customer?.name ?? '', customer_phone: customer?.mobile ?? '' }) }}><SelectTrigger id="customer_record"><SelectValue placeholder="Select customer" /></SelectTrigger><SelectContent><SelectItem value="new">New Customer — Add new record</SelectItem>{customers.map((customer) => <SelectItem key={customer.id} value={customer.name}>{customer.name}{customer.mobile ? ` — ${customer.mobile}` : ''}</SelectItem>)}</SelectContent></Select>
       </div>
       {/* Customer Name */}
       <div className="grid gap-2">

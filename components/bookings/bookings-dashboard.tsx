@@ -28,6 +28,7 @@ interface BookingWithVehicle extends VehicleBooking {
 interface BookingsDashboardProps {
   vehicles: (Vehicle & { category: { name: string } | null })[]
   locations: Location[]
+  customers: { id: string; name: string; mobile: string | null; email: string | null }[]
   bookings: BookingWithVehicle[]
   userEmail: string
 }
@@ -35,6 +36,7 @@ interface BookingsDashboardProps {
 export default function BookingsDashboard({
   vehicles,
   locations,
+  customers,
   bookings: initialBookings,
   userEmail,
 }: BookingsDashboardProps) {
@@ -174,6 +176,7 @@ export default function BookingsDashboard({
               <BookingForm
                 vehicles={vehicles}
                 locations={locations}
+                customers={customers}
                 onBookingCreated={handleBookingCreated}
                 onCancel={() => setShowForm(false)}
               />
