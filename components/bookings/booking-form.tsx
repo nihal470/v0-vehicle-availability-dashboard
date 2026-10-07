@@ -35,6 +35,7 @@ export default function BookingForm({
   const [step, setStep] = useState<number>(1)
   const [vehicleType, setVehicleType] = useState('all')
   const [customerMode, setCustomerMode] = useState<'existing' | 'new'>('existing')
+  const [rentalType, setRentalType] = useState('daily')
   const [availableVehicles, setAvailableVehicles] = useState<typeof vehicles>(vehicles)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -180,6 +181,13 @@ export default function BookingForm({
 
 
       {step === 1 && <>
+      <div className="grid gap-2 sm:col-span-2">
+        <Label htmlFor="rental_type">Rental Type</Label>
+        <Select value={rentalType} onValueChange={setRentalType}>
+          <SelectTrigger id="rental_type"><SelectValue placeholder="Select rental type" /></SelectTrigger>
+          <SelectContent><SelectItem value="daily">Daily</SelectItem><SelectItem value="weekly">Weekly</SelectItem><SelectItem value="monthly">Monthly</SelectItem></SelectContent>
+        </Select>
+      </div>
       {/* Start Date */}
       <div className="grid gap-2">
         <Label htmlFor="start_date">Start Date *</Label>
@@ -188,7 +196,7 @@ export default function BookingForm({
           type="date"
           value={formData.start_date}
           onChange={(e) =>
-            setFormData({ ...formData, start_date: e.target.value })
+            setFormData({ ...formData, start_date: e.target.value, end_date: formData.end_date || e.target.value })
           }
           required
         />
@@ -205,9 +213,10 @@ export default function BookingForm({
         <Input
           id="end_date"
           type="date"
+          min={formData.start_date || undefined}
           value={formData.end_date}
           onChange={(e) =>
-            setFormData({ ...formData, end_date: e.target.value })
+            setFormData({ ...formData, end_date: e.target.value < formData.start_date ? formData.start_date : e.target.value })
           }
           required
         />
