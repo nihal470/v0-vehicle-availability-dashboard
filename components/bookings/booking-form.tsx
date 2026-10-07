@@ -153,6 +153,13 @@ export default function BookingForm({
 
       {step === 2 && <div className="grid gap-2 sm:col-span-2"><Label htmlFor="vehicle">Available Vehicle *</Label><Select value={formData.vehicle_id} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })}><SelectTrigger id="vehicle"><SelectValue placeholder={`${availableVehicles.length} vehicles available`} /></SelectTrigger><SelectContent>{Object.entries(vehiclesByCategory).map(([category, categoryVehicles]) => <div key={category}><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>{categoryVehicles.map((vehicle) => <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.make} {vehicle.model} - {vehicle.license_plate}</SelectItem>)}</div>)}</SelectContent></Select><p className="text-xs text-muted-foreground">Showing vehicles available for the selected pickup and return period.</p></div>}
 
+      {step === 3 && <>
+      {/* Customer Details */}
+      <div className="grid gap-2 sm:col-span-2"><p className="text-sm font-semibold">Customer Details</p><p className="text-xs text-muted-foreground">Choose an existing customer or enter a new customer record below.</p></div>
+      <div className="grid gap-2">
+        <Label htmlFor="customer_record">Customer record</Label>
+        <Select value={formData.customer_name ? 'new' : ''} onValueChange={(value) => { if (value === 'existing') setFormData({ ...formData, customer_name: '' }); else setFormData({ ...formData, customer_name: '' }) }}><SelectTrigger id="customer_record"><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent><SelectItem value="existing">Existing Customer — Select from records</SelectItem><SelectItem value="new">New Customer — Add new record</SelectItem></SelectContent></Select>
+      </div>
       {/* Customer Name */}
       <div className="grid gap-2">
         <Label htmlFor="customer_name">Customer Name</Label>
@@ -179,12 +186,14 @@ export default function BookingForm({
           }
         />
       </div>
+      </>}
 
-  <div className="grid gap-2 rounded-xl border bg-muted/20 p-4 md:col-span-2">
+  {step === 3 && <div className="grid gap-2 rounded-xl border bg-muted/20 p-4 md:col-span-2">
     <div><p className="text-sm font-semibold">Flight details <span className="font-normal text-muted-foreground">(optional)</span></p><p className="text-xs text-muted-foreground">Add the flight number for airport pickup or arrival coordination.</p></div>
     <div className="max-w-md"><Label htmlFor="flight_number">Flight number</Label><Input id="flight_number" placeholder="e.g. WY101" value={formData.flight_number} onChange={(e) => setFormData({ ...formData, flight_number: e.target.value })} /></div>
-  </div>
+  </div>}
 
+      {step === 1 && <>
       {/* Start Date */}
       <div className="grid gap-2">
         <Label htmlFor="start_date">Start Date *</Label>
@@ -268,7 +277,9 @@ export default function BookingForm({
           </SelectContent>
         </Select>
       </div>
+      </>}
 
+      {step === 3 && <>
       {/* Notes */}
       <div className="grid gap-2 md:col-span-2">
         <Label htmlFor="notes">Notes</Label>
@@ -280,6 +291,7 @@ export default function BookingForm({
           rows={3}
         />
       </div>
+      </>}
 
       {/* Error Message */}
       {error && (
@@ -289,7 +301,7 @@ export default function BookingForm({
       )}
 
       <div className="flex flex-wrap gap-3 pt-2 sm:col-span-2">
-        {step === 1 ? <Button type="button" onClick={() => { if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) { setError('Please select pickup and return dates and times'); return } if (new Date(`${formData.end_date}T${formData.end_time}:00Z`) <= new Date(`${formData.start_date}T${formData.start_time}:00Z`)) { setError('Return time must be after pickup time'); return } setError(null); setStep(2) }}>Next: Select Vehicle</Button> : <><Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button><Button type="button" variant="outline" onClick={() => setStep(1)}>Previous</Button></>}
+        {step === 1 ? <Button type="button" onClick={() => { if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) { setError('Please select pickup and return dates and times'); return } if (new Date(`${formData.end_date}T${formData.end_time}:00Z`) <= new Date(`${formData.start_date}T${formData.start_time}:00Z`)) { setError('Return time must be after pickup time'); return } setError(null); setStep(2) }}>Next: Select Vehicle</Button> : step === 2 ? <><Button type="button" disabled={!formData.vehicle_id} onClick={() => { if (!formData.vehicle_id) { setError('Please select an available vehicle'); return } setError(null); setStep(3) }}>Next: Customer Details</Button><Button type="button" variant="outline" onClick={() => setStep(1)}>Previous</Button></> : <><Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button><Button type="button" variant="outline" onClick={() => setStep(2)}>Previous</Button></>}
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
         </div></section>
