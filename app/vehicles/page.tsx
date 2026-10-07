@@ -5,6 +5,10 @@ import { Truck, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
+// Disable caching for real-time data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function VehiclesPage() {
   const supabase = await createClient()
 

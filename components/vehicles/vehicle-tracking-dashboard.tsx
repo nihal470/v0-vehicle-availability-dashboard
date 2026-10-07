@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Vehicle, VehicleCategory, VehicleAlert } from '@/lib/types'
+import { Vehicle, VehicleCategory, BRANCHES } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   AlertTriangle, 
-  Shield, 
   FileText, 
   Wrench, 
   Car,
@@ -23,178 +22,146 @@ import {
   Plus,
   XCircle,
   ArrowRightLeft,
-  CreditCard
+  CreditCard,
+  ListChecks,
+  MapPin,
+  Car as CarIcon,
+  Plane,
+  Building2,
+  LogOut,
+  Archive,
+  Eye,
+  EyeOff,
+  Camera,
+  MoreHorizontal
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { generateAlerts } from './active-alerts'
 import { VehicleDetailsModal } from './vehicle-details-modal'
 import { AddVehicleModal } from './add-vehicle-modal'
 import { CloseAgreementModal } from './close-agreement-modal'
 import { StartAgreementModal } from './start-agreement-modal'
 import { MoveVehicleModal } from './move-vehicle-modal'
+import { SetParkedLocationModal } from './set-parked-location-modal'
+import { InspectionCaptureModal } from './inspection-capture-modal'
+import { InspectionGalleryModal } from './inspection-gallery-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
-import { differenceInDays, format } from 'date-fns'
+import { BulkUpdateModal } from './bulk-update-modal'
+import { format } from 'date-fns'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   vehicles: Vehicle[]
   categories: VehicleCategory[]
 }
 
-function generateAlerts(vehicles: Vehicle[]): VehicleAlert[] {
-  const alerts: VehicleAlert[] = []
-  const today = new Date()
-
-  vehicles.forEach((vehicle) => {
-    // Insurance expiry alerts
-    if (vehicle.insurance_end_date) {
-      const daysUntilExpiry = differenceInDays(new Date(vehicle.insurance_end_date), today)
-      if (daysUntilExpiry < 0) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'insurance',
-          severity: 'critical',
-          message: `Insurance expired ${Math.abs(daysUntilExpiry)} days ago`,
-          daysRemaining: daysUntilExpiry
-        })
-      } else if (daysUntilExpiry <= 30) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'insurance',
-          severity: daysUntilExpiry <= 7 ? 'critical' : 'warning',
-          message: `Insurance expires in ${daysUntilExpiry} days`,
-          daysRemaining: daysUntilExpiry
-        })
-      }
-    }
-
-    // Mulkiya renewal alerts
-    if (vehicle.mulkiya_renewal_date) {
-      const daysUntilRenewal = differenceInDays(new Date(vehicle.mulkiya_renewal_date), today)
-      if (daysUntilRenewal < 0) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'mulkiya',
-          severity: 'critical',
-          message: `Mulkiya expired ${Math.abs(daysUntilRenewal)} days ago`,
-          daysRemaining: daysUntilRenewal
-        })
-      } else if (daysUntilRenewal <= 30) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'mulkiya',
-          severity: daysUntilRenewal <= 7 ? 'critical' : 'warning',
-          message: `Mulkiya renewal due in ${daysUntilRenewal} days`,
-          daysRemaining: daysUntilRenewal
-        })
-      }
-    }
-
-    // Service due by KM
-    if (vehicle.current_km && vehicle.next_service_km) {
-      const kmRemaining = vehicle.next_service_km - vehicle.current_km
-      if (kmRemaining < 0) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'service_km',
-          severity: 'critical',
-          message: `Service overdue by ${Math.abs(kmRemaining).toLocaleString()} km`,
-          kmRemaining
-        })
-      } else if (kmRemaining <= 1000) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'service_km',
-          severity: kmRemaining <= 500 ? 'critical' : 'warning',
-          message: `Service due in ${kmRemaining.toLocaleString()} km`,
-          kmRemaining
-        })
-      }
-    }
-
-    // Service due by date
-    if (vehicle.next_service_date) {
-      const daysUntilService = differenceInDays(new Date(vehicle.next_service_date), today)
-      if (daysUntilService < 0) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'service_date',
-          severity: 'critical',
-          message: `Service overdue by ${Math.abs(daysUntilService)} days`,
-          daysRemaining: daysUntilService
-        })
-      } else if (daysUntilService <= 14) {
-        alerts.push({
-          vehicleId: vehicle.id,
-          licensePlate: vehicle.license_plate,
-          make: vehicle.make,
-          model: vehicle.model,
-          type: 'service_date',
-          severity: daysUntilService <= 7 ? 'critical' : 'warning',
-          message: `Service due in ${daysUntilService} days`,
-          daysRemaining: daysUntilService
-        })
-      }
-    }
-  })
-
-  // Sort by severity (critical first)
-  return alerts.sort((a, b) => {
-    const severityOrder = { critical: 0, warning: 1, info: 2 }
-    return severityOrder[a.severity] - severityOrder[b.severity]
-  })
-}
-
 export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [branchFilter, setBranchFilter] = useState<string>('all')
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showCloseModal, setShowCloseModal] = useState(false)
   const [vehicleToClose, setVehicleToClose] = useState<Vehicle | null>(null)
   const [showStartModal, setShowStartModal] = useState(false)
   const [vehicleToStart, setVehicleToStart] = useState<Vehicle | null>(null)
+  const [showEditAgreementModal, setShowEditAgreementModal] = useState(false)
+  const [vehicleToEditAgreement, setVehicleToEditAgreement] = useState<Vehicle | null>(null)
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [vehicleToMove, setVehicleToMove] = useState<Vehicle | null>(null)
+  const [showParkedLocationModal, setShowParkedLocationModal] = useState(false)
+  const [vehicleForParkedLocation, setVehicleForParkedLocation] = useState<Vehicle | null>(null)
+  const [showInspectionModal, setShowInspectionModal] = useState(false)
+  const [showGalleryModal, setShowGalleryModal] = useState(false)
+  const [vehicleForInspection, setVehicleForInspection] = useState<Vehicle | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [vehicleForPayment, setVehicleForPayment] = useState<Vehicle | null>(null)
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showReturnedVehicles, setShowReturnedVehicles] = useState(false)
+  
+  const supabase = createClient()
+  const router = useRouter()
 
-  const alerts = useMemo(() => generateAlerts(vehicles), [vehicles])
+  // Handle marking a leased vehicle as returned
+  const handleRemoveCancelledVehicle = async (vehicle: Vehicle) => {
+    if (!confirm(`Remove ${vehicle.make} ${vehicle.model} (${vehicle.license_plate}) from the active fleet? The vehicle will be archived and its history will be retained.`)) return
+    const { error } = await supabase.from('vehicles').update({ status: 'archived', updated_at: new Date().toISOString() }).eq('id', vehicle.id)
+    if (error) {
+      console.error('Error archiving vehicle:', error)
+      alert('Failed to remove the vehicle. Please try again.')
+      return
+    }
+    router.refresh()
+  }
+
+  const handleMarkAsReturned = async (vehicle: Vehicle) => {
+    if (!confirm(`Are you sure you want to mark "${vehicle.make} ${vehicle.model}" (${vehicle.license_plate}) as returned?\n\nThis will:\n- Change status to Inactive\n- Exclude from Active Fleet count\n- Hide from operational dashboards\n\nAll history will be retained for audit purposes.`)) {
+      return
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({ 
+          status: 'returned',
+          customer_name: null,
+          return_date: null,
+          ag_no: null,
+          rental_type: null,
+          rental_renewal_date: null,
+          payment_status: null,
+          payment_date: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', vehicle.id)
+      
+      if (error) throw error
+      
+      router.refresh()
+    } catch (error) {
+      console.error('Error marking vehicle as returned:', error)
+      alert('Failed to mark vehicle as returned. Please try again.')
+    }
+  }
+
+  // Filter out returned vehicles for active fleet
+  const archivedVehicles = useMemo(() => vehicles.filter(v => v.status === 'archived'), [vehicles])
+  const activeVehicles = useMemo(() => vehicles.filter(v => v.status !== 'returned' && v.status !== 'archived'), [vehicles])
+  const returnedVehicles = useMemo(() => vehicles.filter(v => v.status === 'returned'), [vehicles])
+
+  const alerts = useMemo(() => generateAlerts(activeVehicles), [activeVehicles])
   
   const criticalAlerts = alerts.filter(a => a.severity === 'critical')
   const warningAlerts = alerts.filter(a => a.severity === 'warning')
   
-  // Vehicle status counts
+  // Vehicle status counts (excluding returned)
   const statusCounts = useMemo(() => ({
-    idle: vehicles.filter(v => v.status === 'idle').length,
-    garage: vehicles.filter(v => v.status === 'garage').length,
-    running: vehicles.filter(v => v.status === 'running').length,
-    available: vehicles.filter(v => v.status === 'available').length,
-    maintenance: vehicles.filter(v => v.status === 'maintenance').length,
-  }), [vehicles])
+    idle: activeVehicles.filter(v => v.status === 'idle').length,
+    garage: activeVehicles.filter(v => v.status === 'garage').length,
+    running: activeVehicles.filter(v => v.status === 'running').length,
+    available: activeVehicles.filter(v => v.status === 'available').length,
+    maintenance: activeVehicles.filter(v => v.status === 'maintenance').length,
+    returned: returnedVehicles.length,
+  }), [activeVehicles, returnedVehicles])
 
   const filteredVehicles = useMemo(() => {
-    return vehicles.filter((vehicle) => {
+    // Use active vehicles by default, or include returned if filter is specifically 'returned' or showReturnedVehicles is true
+    const baseVehicles = statusFilter === 'returned' 
+      ? returnedVehicles 
+      : showReturnedVehicles 
+        ? vehicles 
+        : activeVehicles
+    
+    return baseVehicles.filter((vehicle) => {
       const matchesSearch = 
         vehicle.license_plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
         vehicle.make.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -204,26 +171,11 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       
       const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter
 
-      return matchesSearch && matchesCategory && matchesStatus
+      const matchesBranch = branchFilter === 'all' || (vehicle.branch || 'Muscat') === branchFilter
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesBranch
     })
-  }, [vehicles, searchQuery, categoryFilter, statusFilter])
-
-  const getAlertIcon = (type: VehicleAlert['type']) => {
-    switch (type) {
-      case 'insurance': return <Shield className="h-4 w-4" />
-      case 'mulkiya': return <FileText className="h-4 w-4" />
-      case 'service_km':
-      case 'service_date': return <Wrench className="h-4 w-4" />
-    }
-  }
-
-  const getSeverityColor = (severity: VehicleAlert['severity']) => {
-    switch (severity) {
-      case 'critical': return 'bg-destructive text-destructive-foreground'
-      case 'warning': return 'bg-accent text-accent-foreground'
-      case 'info': return 'bg-muted text-muted-foreground'
-    }
-  }
+  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, branchFilter, showReturnedVehicles])
 
   return (
     <div className="space-y-6">
@@ -231,12 +183,17 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Fleet</CardTitle>
             <Car className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{vehicles.length}</div>
-            <p className="text-xs text-muted-foreground">In fleet</p>
+            <div className="text-2xl font-bold">{activeVehicles.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {returnedVehicles.length > 0 && (
+                <span className="text-slate-500">+{returnedVehicles.length} returned</span>
+              )}
+              {returnedVehicles.length === 0 && 'In fleet'}
+            </p>
           </CardContent>
         </Card>
         
@@ -330,7 +287,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
             >
               <CheckCircle2 className="h-6 w-6" />
               <span className="text-lg font-bold">{statusCounts.available}</span>
-              <span className="text-xs">Available</span>
+              <span className="text-xs">Reserved</span>
             </Button>
             
             <Button
@@ -342,53 +299,20 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
               <span className="text-lg font-bold">{statusCounts.maintenance}</span>
               <span className="text-xs">Maintenance</span>
             </Button>
+            
+            {/* Returned vehicles can be selected to reveal the archive action in each row */}
+            <Button
+              variant={statusFilter === 'returned' ? 'default' : 'outline'}
+              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'returned' ? 'bg-rose-600 hover:bg-rose-700' : 'border-rose-500/50 text-rose-700 hover:bg-rose-50'}`}
+              onClick={() => setStatusFilter('returned')}
+            >
+              <Archive className="h-6 w-6" />
+              <span className="text-lg font-bold">{statusCounts.returned}</span>
+              <span className="text-xs">Returned / Remove</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Alerts Section */}
-      {alerts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Active Alerts ({alerts.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {alerts.map((alert, index) => (
-                <div 
-                  key={`${alert.vehicleId}-${alert.type}-${index}`}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    alert.severity === 'critical' 
-                      ? 'border-destructive/50 bg-destructive/5' 
-                      : 'border-accent/50 bg-accent/5'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${getSeverityColor(alert.severity)}`}>
-                      {getAlertIcon(alert.type)}
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {alert.make} {alert.model} 
-                        <span className="text-muted-foreground ml-2">({alert.licensePlate})</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground">{alert.message}</p>
-                    </div>
-                  </div>
-                  <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
-                    {alert.type === 'insurance' && 'Insurance'}
-                    {alert.type === 'mulkiya' && 'Mulkiya'}
-                    {(alert.type === 'service_km' || alert.type === 'service_date') && 'Service'}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
@@ -414,16 +338,39 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
             ))}
           </SelectContent>
         </Select>
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Branches" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Branches</SelectItem>
+            {BRANCHES.map((branch) => (
+              <SelectItem key={branch} value={branch}>
+                {branch}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Vehicle List */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Vehicle Details & Tracking</CardTitle>
-          <Button onClick={() => setShowAddModal(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Vehicle
-          </Button>
+          <div>
+            <CardTitle>Vehicle Details & Tracking</CardTitle>
+            {statusFilter === 'returned' && <p className="mt-1 text-sm text-muted-foreground">Select the three-dot menu on a returned vehicle, then choose “Remove returned vehicle”.</p>}
+            {statusFilter !== 'returned' && <p className="mt-1 text-sm text-muted-foreground">For an owned vehicle, open the three-dot menu and choose “Remove owned vehicle” to archive it while keeping its history.</p>}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowBulkUpdateModal(true)}>
+              <ListChecks className="mr-2 h-4 w-4" />
+              Bulk Mulkiya Update
+            </Button>
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Vehicle
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -433,36 +380,20 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                   <th className="p-3 text-left text-sm font-medium">Vehicle</th>
                   <th className="p-3 text-left text-sm font-medium">License Plate</th>
                   <th className="p-3 text-left text-sm font-medium">Own/Lease</th>
-                  <th className="p-3 text-left text-sm font-medium">Status</th>
-                  <th className="p-3 text-left text-sm font-medium">Customer Name</th>
-                  <th className="p-3 text-left text-sm font-medium">Return Date</th>
+                    <th className="p-3 text-left text-sm font-medium">Status</th>
+                    <th className="p-3 text-left text-sm font-medium">Current Branch</th>
+                    <th className="p-3 text-left text-sm font-medium">Parked Location</th>
+                      <th className="p-3 text-left text-sm font-medium">Customer Name</th>
+                      <th className="p-3 text-left text-sm font-medium">Start Date</th>
+                      <th className="p-3 text-left text-sm font-medium">Return Date</th>
                   <th className="p-3 text-left text-sm font-medium">AG No</th>
                   <th className="p-3 text-left text-sm font-medium">Rental</th>
-                  <th className="p-3 text-left text-sm font-medium">Renewal Date</th>
-                  <th className="p-3 text-left text-sm font-medium">Payment</th>
-                  <th className="p-3 text-left text-sm font-medium">Insurance Expiry</th>
-                  <th className="p-3 text-left text-sm font-medium">Mulkiya Renewal</th>
-                  <th className="p-3 text-left text-sm font-medium">Current KM</th>
-                  <th className="p-3 text-left text-sm font-medium">Alert Status</th>
+
                   <th className="p-3 text-left text-sm font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredVehicles.map((vehicle) => {
-                  const vehicleAlerts = alerts.filter(a => a.vehicleId === vehicle.id)
-                  const hasCritical = vehicleAlerts.some(a => a.severity === 'critical')
-                  const hasWarning = vehicleAlerts.some(a => a.severity === 'warning')
-                  
-                  const insuranceDays = vehicle.insurance_end_date 
-                    ? differenceInDays(new Date(vehicle.insurance_end_date), new Date()) 
-                    : null
-                  const mulkiyaDays = vehicle.mulkiya_renewal_date 
-                    ? differenceInDays(new Date(vehicle.mulkiya_renewal_date), new Date()) 
-                    : null
-                  const kmRemaining = vehicle.current_km && vehicle.next_service_km 
-                    ? vehicle.next_service_km - vehicle.current_km 
-                    : null
-
                   return (
                     <tr key={vehicle.id} className="border-b hover:bg-muted/30">
                       <td className="p-3">
@@ -486,6 +417,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           vehicle.status === 'garage' ? 'bg-slate-500 hover:bg-slate-600' :
                           vehicle.status === 'available' ? 'bg-sky-500 hover:bg-sky-600' :
                           vehicle.status === 'maintenance' ? 'bg-purple-500 hover:bg-purple-600' :
+                          vehicle.status === 'returned' ? 'bg-rose-500 hover:bg-rose-600' :
                           'bg-gray-500'
                         }>
                           {vehicle.status === 'running' && <PlayCircle className="h-3 w-3 mr-1" />}
@@ -493,12 +425,66 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                           {vehicle.status === 'garage' && <Warehouse className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'available' && <CheckCircle2 className="h-3 w-3 mr-1" />}
                           {vehicle.status === 'maintenance' && <Wrench className="h-3 w-3 mr-1" />}
-                          {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
+                          {vehicle.status === 'returned' && <Archive className="h-3 w-3 mr-1" />}
+                          {vehicle.status === 'returned' ? 'Inactive' : vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
                         </Badge>
+                      </td>
+                      <td className="p-3">
+                        <Badge variant="outline" className={
+                          vehicle.branch === 'Salalah'
+                            ? 'border-orange-500 text-orange-600 bg-orange-50'
+                            : 'border-indigo-500 text-indigo-600 bg-indigo-50'
+                        }>
+                          <Building2 className="h-3 w-3 mr-1" />
+                          {vehicle.branch || 'Muscat'}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
+                        {vehicle.status === 'idle' && vehicle.parked_location ? (
+                          <div className="flex items-center gap-2">
+                            {vehicle.parked_location_photo && (
+                              <a
+                                href={vehicle.parked_location_photo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="shrink-0"
+                                title="View parking photo"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={vehicle.parked_location_photo || "/placeholder.svg"}
+                                  alt="Parking location"
+                                  className="h-9 w-9 rounded object-cover border hover:ring-2 hover:ring-amber-400"
+                                />
+                              </a>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                              {vehicle.parked_location === 'car_wash' && <CarIcon className="h-4 w-4 text-amber-600" />}
+                              {vehicle.parked_location === 'airport' && <Plane className="h-4 w-4 text-amber-600" />}
+                              {vehicle.parked_location === 'office_front' && <Building2 className="h-4 w-4 text-amber-600" />}
+                              {vehicle.parked_location === 'custom' && <MapPin className="h-4 w-4 text-amber-600" />}
+                              <span className="text-sm">
+                                {vehicle.parked_location === 'car_wash' && 'Car Wash'}
+                                {vehicle.parked_location === 'airport' && 'Airport'}
+                                {vehicle.parked_location === 'office_front' && 'Office Front'}
+                                {vehicle.parked_location === 'custom' && vehicle.parked_location_custom}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </td>
                       <td className="p-3">
                         {vehicle.customer_name ? (
                           <span className="font-medium">{vehicle.customer_name}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {vehicle.start_date ? (
+                          <span>{format(new Date(vehicle.start_date), 'dd-MMM-yy')}</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -521,140 +507,153 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
                         )}
                       </td>
                       <td className="p-3">
-                        {vehicle.rental_renewal_date ? (
-                          <span>{format(new Date(vehicle.rental_renewal_date), 'dd-MMM-yy')}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.payment_status ? (
-                          <Badge className={
-                            vehicle.payment_status === 'paid' 
-                              ? 'bg-emerald-500 hover:bg-emerald-600' 
-                              : 'bg-red-500 hover:bg-red-600'
-                          }>
-                            {vehicle.payment_status === 'paid' ? 'Paid' : 'Not Paid'}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                        {vehicle.payment_date && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {format(new Date(vehicle.payment_date), 'dd-MMM-yy')}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.insurance_end_date ? (
-                          <div className={insuranceDays !== null && insuranceDays <= 30 
-                            ? insuranceDays <= 7 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
-                            : ''
-                          }>
-                            {format(new Date(vehicle.insurance_end_date), 'MMM dd, yyyy')}
-                            {insuranceDays !== null && insuranceDays <= 30 && (
-                              <div className="text-xs">({insuranceDays} days)</div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Not set</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.mulkiya_renewal_date ? (
-                          <div className={mulkiyaDays !== null && mulkiyaDays <= 30 
-                            ? mulkiyaDays <= 7 ? 'text-destructive font-medium' : 'text-amber-600 font-medium' 
-                            : ''
-                          }>
-                            {format(new Date(vehicle.mulkiya_renewal_date), 'MMM dd, yyyy')}
-                            {mulkiyaDays !== null && mulkiyaDays <= 30 && (
-                              <div className="text-xs">({mulkiyaDays} days)</div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Not set</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {vehicle.current_km?.toLocaleString() ?? '-'} km
-                      </td>
-                      <td className="p-3">
-                        {hasCritical ? (
-                          <Badge variant="destructive">Critical</Badge>
-                        ) : hasWarning ? (
-                          <Badge className="bg-amber-500 hover:bg-amber-600">Warning</Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-green-100 text-green-700">OK</Badge>
-                        )}
-                      </td>
-                      <td className="p-3">
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedVehicle(vehicle)
-                              setShowModal(true)
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          {vehicle.status === 'idle' && !vehicle.customer_name && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
-                              onClick={() => {
-                                setVehicleToStart(vehicle)
-                                setShowStartModal(true)
-                              }}
-                            >
-                              <PlayCircle className="h-4 w-4 mr-1" />
-                              Start
-                            </Button>
-                          )}
-                          {vehicle.status === 'running' && vehicle.customer_name && (
-                            <>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <MoreHorizontal className="h-4 w-4 mr-1" />
+                                Actions
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
                                 onClick={() => {
-                                  setVehicleForPayment(vehicle)
-                                  setShowPaymentModal(true)
+                                  setSelectedVehicle(vehicle)
+                                  setShowModal(true)
                                 }}
                               >
-                                <CreditCard className="h-4 w-4 mr-1" />
-                                Renew
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-amber-600 border-amber-600 hover:bg-amber-50"
-                                onClick={() => {
-                                  setVehicleToClose(vehicle)
-                                  setShowCloseModal(true)
-                                }}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Close
-                              </Button>
-                            </>
-                          )}
-                          {/* Move button - available for idle, available, garage, maintenance */}
-                          {!vehicle.customer_name && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-slate-600 border-slate-400 hover:bg-slate-50"
-                              onClick={() => {
-                                setVehicleToMove(vehicle)
-                                setShowMoveModal(true)
-                              }}
-                            >
-                              <ArrowRightLeft className="h-4 w-4 mr-1" />
-                              Move
-                            </Button>
+                                <FileText className="h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+
+                              {vehicle.status === 'idle' && !vehicle.customer_name && (
+                                <DropdownMenuItem
+                                  className="text-emerald-600 focus:text-emerald-600"
+                                  onClick={() => {
+                                    setVehicleToStart(vehicle)
+                                    setShowStartModal(true)
+                                  }}
+                                >
+                                  <PlayCircle className="h-4 w-4" />
+                                  Start Agreement
+                                </DropdownMenuItem>
+                              )}
+
+                              {vehicle.status === 'running' && vehicle.customer_name && (
+                                <>
+                                  <DropdownMenuItem
+                                    className="text-indigo-600 focus:text-indigo-600"
+                                    onClick={() => {
+                                      setVehicleToEditAgreement(vehicle)
+                                      setShowEditAgreementModal(true)
+                                    }}
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                    Edit Agreement
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-teal-600 focus:text-teal-600"
+                                    onClick={() => {
+                                      setVehicleForInspection(vehicle)
+                                      setShowInspectionModal(true)
+                                    }}
+                                  >
+                                    <Camera className="h-4 w-4" />
+                                    Inspection
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-purple-600 focus:text-purple-600"
+                                    onClick={() => {
+                                      setVehicleForInspection(vehicle)
+                                      setShowGalleryModal(true)
+                                    }}
+                                  >
+                                    <ListChecks className="h-4 w-4" />
+                                    Photos
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-blue-600 focus:text-blue-600"
+                                    onClick={() => {
+                                      setVehicleForPayment(vehicle)
+                                      setShowPaymentModal(true)
+                                    }}
+                                  >
+                                    <CreditCard className="h-4 w-4" />
+                                    Renew
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className="text-amber-600 focus:text-amber-600"
+                                    onClick={() => {
+                                      setVehicleToClose(vehicle)
+                                      setShowCloseModal(true)
+                                    }}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                    Close Agreement
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+
+                              {/* Move - available for idle, available, garage, maintenance */}
+                              {!vehicle.customer_name && vehicle.status !== 'returned' && (
+                                <DropdownMenuItem
+                                  className="text-slate-600 focus:text-slate-600"
+                                  onClick={() => {
+                                    setVehicleToMove(vehicle)
+                                    setShowMoveModal(true)
+                                  }}
+                                >
+                                  <ArrowRightLeft className="h-4 w-4" />
+                                  Move
+                                </DropdownMenuItem>
+                              )}
+
+                              {/* Set Parked Location - for parked (non-rented) active vehicles */}
+                              {!vehicle.customer_name && vehicle.status !== 'running' && vehicle.status !== 'returned' && (
+                                <DropdownMenuItem
+                                  className="text-amber-600 focus:text-amber-600"
+                                  onClick={() => {
+                                    setVehicleForParkedLocation(vehicle)
+                                    setShowParkedLocationModal(true)
+                                  }}
+                                >
+                                  <MapPin className="h-4 w-4" />
+                                  {vehicle.parked_location ? 'Update Parked Location' : 'Set Parked Location'}
+                                </DropdownMenuItem>
+                              )}
+
+                              {/* Mark as Returned - only for leased vehicles that are not running */}
+                              {vehicle.ownership_type === 'leased' && vehicle.status !== 'running' && vehicle.status !== 'returned' && vehicle.status !== 'archived' && (
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => handleMarkAsReturned(vehicle)}
+                                >
+                                  <LogOut className="h-4 w-4" />
+                                  Return
+  </DropdownMenuItem>
+  )}
+  {vehicle.status === 'returned' && (
+    <DropdownMenuItem variant="destructive" onClick={() => handleRemoveCancelledVehicle(vehicle)}>
+      <Archive className="h-4 w-4" />
+      Remove returned vehicle
+    </DropdownMenuItem>
+  )}
+  {vehicle.ownership_type === 'owned' && vehicle.status !== 'archived' && vehicle.status !== 'returned' && (
+    <DropdownMenuItem variant="destructive" onClick={() => handleRemoveCancelledVehicle(vehicle)}>
+      <Archive className="h-4 w-4" />
+      Remove owned vehicle
+    </DropdownMenuItem>
+  )}
+  </DropdownMenuContent>
+                          </DropdownMenu>
+
+                          {/* Returned badge for returned vehicles */}
+                          {vehicle.status === 'returned' && (
+                            <Badge variant="secondary" className="bg-rose-100 text-rose-700">
+                              <Archive className="h-3 w-3 mr-1" />
+                              Inactive
+                            </Badge>
                           )}
                         </div>
                       </td>
@@ -701,6 +700,16 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
         />
       )}
 
+      {/* Edit Agreement Modal */}
+      {vehicleToEditAgreement && (
+        <StartAgreementModal
+          vehicle={vehicleToEditAgreement}
+          open={showEditAgreementModal}
+          onOpenChange={setShowEditAgreementModal}
+          mode="edit"
+        />
+      )}
+
       {/* Move Vehicle Modal */}
       {vehicleToMove && (
         <MoveVehicleModal
@@ -710,12 +719,49 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
         />
       )}
 
+      {/* Set Parked Location Modal */}
+      {vehicleForParkedLocation && (
+        <SetParkedLocationModal
+          vehicle={vehicleForParkedLocation}
+          open={showParkedLocationModal}
+          onOpenChange={setShowParkedLocationModal}
+        />
+      )}
+
+      {/* Inspection Capture Modal */}
+      {vehicleForInspection && (
+        <InspectionCaptureModal
+          vehicle={vehicleForInspection}
+          open={showInspectionModal}
+          onOpenChange={setShowInspectionModal}
+        />
+      )}
+
+      {/* Inspection Gallery Modal */}
+      {vehicleForInspection && (
+        <InspectionGalleryModal
+          vehicle={vehicleForInspection}
+          open={showGalleryModal}
+          onOpenChange={setShowGalleryModal}
+          onAddPhotos={() => setShowInspectionModal(true)}
+        />
+      )}
+
       {/* Update Payment Modal */}
       {vehicleForPayment && (
         <UpdatePaymentModal
           vehicle={vehicleForPayment}
           open={showPaymentModal}
           onOpenChange={setShowPaymentModal}
+        />
+      )}
+
+      {/* Bulk Update Modal */}
+      {showBulkUpdateModal && (
+        <BulkUpdateModal
+          vehicles={vehicles}
+          open={showBulkUpdateModal}
+          onOpenChange={setShowBulkUpdateModal}
         />
       )}
     </div>

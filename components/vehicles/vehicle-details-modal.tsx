@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Vehicle } from '@/lib/types'
+import { useState, useEffect } from 'react'
+import { Vehicle, VehicleCategory } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import {
   Dialog,
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Shield, FileText, Wrench, Gauge, Loader2, Car, Building2 } from 'lucide-react'
+import { Shield, FileText, Wrench, Gauge, Loader2, Car, Building2, Tag, Plus, Check, X, Pencil, Trash2 } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 
@@ -27,7 +27,14 @@ interface Props {
 export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [categoryList, setCategoryList] = useState<VehicleCategory[]>([])
+  const [showManageCategories, setShowManageCategories] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [editingCategoryName, setEditingCategoryName] = useState('')
+  const [categoryBusy, setCategoryBusy] = useState(false)
   const [formData, setFormData] = useState({
+    category_id: vehicle.category_id || '',
     make: vehicle.make || '',
     model: vehicle.model || '',
     license_plate: vehicle.license_plate || '',
@@ -42,6 +49,99 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
     next_service_date: vehicle.next_service_date || '',
   })
 
+  // Reset form data when vehicle changes or modal opens
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        category_id: vehicle.category_id || '',
+        make: vehicle.make || '',
+        model: vehicle.model || '',
+        license_plate: vehicle.license_plate || '',
+        ownership_type: vehicle.ownership_type || 'owned',
+        insurance_start_date: vehicle.insurance_start_date || '',
+        insurance_end_date: vehicle.insurance_end_date || '',
+        mulkiya_renewal_date: vehicle.mulkiya_renewal_date || '',
+        last_service_date: vehicle.last_service_date || '',
+        last_service_km: vehicle.last_service_km?.toString() || '',
+        current_km: vehicle.current_km?.toString() || '',
+        next_service_km: vehicle.next_service_km?.toString() || '',
+        next_service_date: vehicle.next_service_date || '',
+      })
+    }
+  }, [vehicle, open])
+
+  // Fetch categories
+  const fetchCategories = async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('vehicle_categories')
+      .select('*')
+      .order('name')
+    if (data) setCategoryList(data)
+  }
+
+  useEffect(() => {
+    if (open) fetchCategories()
+  }, [open])
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!name) return
+    setCategoryBusy(true)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('vehicle_categories')
+      .insert({ name })
+    setCategoryBusy(false)
+    if (error) {
+      alert('Error creating category: ' + error.message)
+      return
+    }
+    setNewCategoryName('')
+    await fetchCategories()
+    router.refresh()
+  }
+
+  const handleUpdateCategory = async (id: string) => {
+    const name = editingCategoryName.trim()
+    if (!name) return
+    setCategoryBusy(true)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('vehicle_categories')
+      .update({ name })
+      .eq('id', id)
+    setCategoryBusy(false)
+    if (error) {
+      alert('Error updating category: ' + error.message)
+      return
+    }
+    setEditingCategoryId(null)
+    setEditingCategoryName('')
+    await fetchCategories()
+    router.refresh()
+  }
+
+  const handleDeleteCategory = async (category: VehicleCategory) => {
+    if (!confirm(`Delete category "${category.name}"? Vehicles using it will have no category.`)) return
+    setCategoryBusy(true)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('vehicle_categories')
+      .delete()
+      .eq('id', category.id)
+    setCategoryBusy(false)
+    if (error) {
+      alert('Error deleting category: ' + error.message)
+      return
+    }
+    if (formData.category_id === category.id) {
+      setFormData(prev => ({ ...prev, category_id: '' }))
+    }
+    await fetchCategories()
+    router.refresh()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -51,6 +151,7 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
     const { error } = await supabase
       .from('vehicles')
       .update({
+        category_id: formData.category_id || null,
         make: formData.make,
         model: formData.model,
         license_plate: formData.license_plate,
@@ -87,6 +188,7 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
   const remainingKm = nextServiceKm - currentKm
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -163,6 +265,38 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
                         Leased
                       </div>
                     </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Vehicle Category */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="category_id">Vehicle Category</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-primary hover:text-primary"
+                    onClick={() => setShowManageCategories(true)}
+                  >
+                    <Tag className="h-3.5 w-3.5 mr-1" />
+                    Manage
+                  </Button>
+                </div>
+                <Select
+                  value={formData.category_id}
+                  onValueChange={(value) => handleInputChange('category_id', value)}
+                >
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryList.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -335,5 +469,130 @@ export function VehicleDetailsModal({ vehicle, open, onOpenChange }: Props) {
         </form>
       </DialogContent>
     </Dialog>
+
+    {/* Manage Categories Dialog */}
+    <Dialog open={showManageCategories} onOpenChange={setShowManageCategories}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Tag className="h-5 w-5 text-primary" />
+            Manage Vehicle Categories
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Create new category */}
+          <div className="space-y-2">
+            <Label>Create New Category</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="e.g., SUV, Sedan, Pickup"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleCreateCategory()
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                className="shrink-0"
+                disabled={categoryBusy || !newCategoryName.trim()}
+                onClick={handleCreateCategory}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </div>
+          </div>
+
+          {/* Existing categories */}
+          <div className="space-y-2">
+            <Label>Existing Categories</Label>
+            <div className="max-h-64 overflow-y-auto space-y-2 rounded-md border p-2">
+              {categoryList.length === 0 && (
+                <p className="text-sm text-muted-foreground p-2 text-center">No categories yet</p>
+              )}
+              {categoryList.map((category) => (
+                <div key={category.id} className="flex items-center gap-2 rounded-md bg-muted/40 p-2">
+                  {editingCategoryId === category.id ? (
+                    <>
+                      <Input
+                        autoFocus
+                        value={editingCategoryName}
+                        onChange={(e) => setEditingCategoryName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleUpdateCategory(category.id)
+                          }
+                        }}
+                        className="h-8"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 bg-emerald-600 hover:bg-emerald-700"
+                        disabled={categoryBusy || !editingCategoryName.trim()}
+                        onClick={() => handleUpdateCategory(category.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => {
+                          setEditingCategoryId(null)
+                          setEditingCategoryName('')
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm font-medium">{category.name}</span>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => {
+                          setEditingCategoryId(category.id)
+                          setEditingCategoryName(category.name)
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                        disabled={categoryBusy}
+                        onClick={() => handleDeleteCategory(category)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setShowManageCategories(false)}>
+            Done
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }

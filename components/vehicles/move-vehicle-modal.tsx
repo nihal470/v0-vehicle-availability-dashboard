@@ -16,7 +16,8 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Warehouse, Wrench, PauseCircle, CheckCircle2 } from 'lucide-react'
+import { Warehouse, Wrench, PauseCircle, CheckCircle2, MapPin, Car, Plane, Building2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Vehicle } from '@/lib/types'
 
 interface Props {
@@ -32,6 +33,15 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<string>('garage')
   const [reason, setReason] = useState('')
   const [estimatedDate, setEstimatedDate] = useState('')
+  const [parkedLocation, setParkedLocation] = useState<string>('')
+  const [parkedLocationCustom, setParkedLocationCustom] = useState('')
+
+  const parkedLocationOptions = [
+    { value: 'car_wash', label: 'Car Wash', icon: Car },
+    { value: 'airport', label: 'Airport', icon: Plane },
+    { value: 'office_front', label: 'Office Front', icon: Building2 },
+    { value: 'custom', label: 'Custom Location', icon: MapPin },
+  ]
 
   const statusOptions = [
     {
@@ -57,8 +67,8 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
     },
     {
       value: 'available',
-      label: 'Available',
-      description: 'Vehicle is ready for rental',
+      label: 'Reserved',
+      description: 'Reserved for upcoming bookings',
       icon: CheckCircle2,
       color: 'text-sky-600',
     },
@@ -68,12 +78,24 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
     setIsLoading(true)
 
     try {
+      const updateData: Record<string, unknown> = {
+        status: selectedStatus,
+        updated_at: new Date().toISOString(),
+      }
+
+      // Add parked location for idle status
+      if (selectedStatus === 'idle') {
+        updateData.parked_location = parkedLocation || null
+        updateData.parked_location_custom = parkedLocation === 'custom' ? parkedLocationCustom : null
+      } else {
+        // Clear parked location when not idle
+        updateData.parked_location = null
+        updateData.parked_location_custom = null
+      }
+
       const { error } = await supabase
         .from('vehicles')
-        .update({
-          status: selectedStatus,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', vehicle.id)
 
       if (error) throw error
@@ -90,15 +112,15 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90dvh] w-[calc(100%-2rem)] flex-col gap-0 p-0 sm:max-w-md">
+        <DialogHeader className="border-b px-4 py-4 sm:px-6">
           <DialogTitle>Move Vehicle</DialogTitle>
           <DialogDescription>
             Change status for {vehicle.make} {vehicle.model} ({vehicle.license_plate})
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4 sm:px-6">
           {/* Current Status */}
           <div className="rounded-lg border bg-muted/50 p-3">
             <p className="text-sm text-muted-foreground">Current Status</p>
@@ -135,6 +157,43 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
             </RadioGroup>
           </div>
 
+          {/* Parked Location for Idle */}
+          {selectedStatus === 'idle' && (
+            <div className="space-y-4 rounded-lg border bg-amber-50/50 p-4">
+              <div className="flex items-center gap-2 text-amber-700">
+                <MapPin className="h-4 w-4" />
+                <Label className="font-medium">Parked Location</Label>
+              </div>
+              <Select value={parkedLocation} onValueChange={setParkedLocation}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select parked location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parkedLocationOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex items-center gap-2">
+                        <option.icon className="h-4 w-4" />
+                        {option.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {parkedLocation === 'custom' && (
+                <div className="space-y-2">
+                  <Label htmlFor="customLocation">Custom Location</Label>
+                  <Input
+                    id="customLocation"
+                    placeholder="Enter custom location..."
+                    value={parkedLocationCustom}
+                    onChange={(e) => setParkedLocationCustom(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Reason (optional) */}
           {(selectedStatus === 'garage' || selectedStatus === 'maintenance') && (
             <>
@@ -164,12 +223,13 @@ export function MoveVehicleModal({ vehicle, open, onOpenChange }: Props) {
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 border-t px-4 py-4 sm:px-6">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            className="w-full sm:w-auto"
+            onClick={handleSubmit}
             disabled={isLoading || selectedStatus === vehicle.status}
           >
             {isLoading ? 'Moving...' : 'Move Vehicle'}

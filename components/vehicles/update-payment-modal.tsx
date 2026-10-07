@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Vehicle } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -15,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { RefreshCw, Car, ArrowRight, Calendar } from 'lucide-react'
 import { format, addDays } from 'date-fns'
@@ -45,9 +44,27 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
     customer_name: vehicle.customer_name || '',
     ag_no: vehicle.ag_no || '',
     // Payment for new agreement
-    payment_status: 'not_paid' as 'paid' | 'not_paid',
     payment_date: '',
+    amount_paid: '',
   })
+
+  // Reset form data when vehicle changes or modal opens
+  useEffect(() => {
+    if (open) {
+      const currentReturnDate = vehicle.return_date ? new Date(vehicle.return_date) : new Date()
+      const newStartDate = addDays(currentReturnDate, 1)
+      const newEndDate = addDays(newStartDate, 30)
+      
+      setFormData({
+        new_return_date: format(newEndDate, 'yyyy-MM-dd'),
+        new_renewal_date: format(newEndDate, 'yyyy-MM-dd'),
+        customer_name: vehicle.customer_name || '',
+        ag_no: vehicle.ag_no || '',
+        payment_date: '',
+        amount_paid: '',
+      })
+    }
+  }, [vehicle, open])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -73,9 +90,9 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
           // New agreement dates
           return_date: formData.new_return_date,
           rental_renewal_date: formData.new_renewal_date,
-          // Reset payment for new agreement
-          payment_status: formData.payment_status,
+          // Record payment for new agreement
           payment_date: formData.payment_date || null,
+          amount_paid: formData.amount_paid ? parseFloat(formData.amount_paid) : null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', vehicle.id)
@@ -198,27 +215,8 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* Payment Status */}
+          {/* Payment */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="payment_status">Payment Status</Label>
-              <Select 
-                value={formData.payment_status} 
-                onValueChange={(value) => handleInputChange('payment_status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paid">
-                    <span className="text-emerald-600 font-medium">Paid</span>
-                  </SelectItem>
-                  <SelectItem value="not_paid">
-                    <span className="text-red-600 font-medium">Not Paid</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="payment_date">Payment Date</Label>
               <Input
@@ -226,6 +224,18 @@ export function UpdatePaymentModal({ vehicle, open, onOpenChange }: Props) {
                 type="date"
                 value={formData.payment_date}
                 onChange={(e) => handleInputChange('payment_date', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="amount_paid">Amount Paid (OMR)</Label>
+              <Input
+                id="amount_paid"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.amount_paid}
+                onChange={(e) => handleInputChange('amount_paid', e.target.value)}
               />
             </div>
           </div>
