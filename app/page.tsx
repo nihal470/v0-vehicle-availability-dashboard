@@ -19,11 +19,13 @@ async function getFleetData() {
     { data: categories },
     { data: vehicles },
     { data: bookings },
+    { data: todayBookings },
     { data: locations },
   ] = await Promise.all([
     supabase.from('vehicle_categories').select('*').order('name'),
     supabase.from('vehicles').select('*').order('make, model'),
     supabase.from('vehicle_bookings').select('*').eq('status', 'booked'),
+    supabase.from('vehicle_bookings').select('id').eq('status', 'booked').eq('start_date', format(new Date(), 'yyyy-MM-dd')),
     supabase.from('locations').select('*').order('name'),
   ])
 
@@ -60,6 +62,7 @@ async function getFleetData() {
     allCategories: categories || [],
     vehicles: allVehicles,
     stats,
+    todayBookingsCount: todayBookings?.length ?? 0,
   }
 }
 
@@ -70,7 +73,7 @@ async function getCurrentUserEmail() {
 }
 
 export default async function FleetPage() {
-  const [{ categories, locations, allCategories, vehicles, stats }, userEmail] = await Promise.all([
+  const [{ categories, locations, allCategories, vehicles, stats, todayBookingsCount }, userEmail] = await Promise.all([
     getFleetData(),
     getCurrentUserEmail(),
   ])
@@ -193,12 +196,13 @@ export default async function FleetPage() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-[1800px] p-6">
-        <Dashboard
-          initialCategories={categories}
-          locations={locations}
-          allCategories={allCategories}
-          vehicles={vehicles}
-        />
+    <Dashboard
+      initialCategories={categories}
+      locations={locations}
+      allCategories={allCategories}
+      vehicles={vehicles}
+      todayBookingsCount={todayBookingsCount}
+    />
       </main>
 
       {/* Footer */}

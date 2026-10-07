@@ -14,6 +14,7 @@ interface DashboardProps {
   locations: Location[]
   allCategories: VehicleCategory[]
   vehicles: Vehicle[]
+  todayBookingsCount: number
 }
 
 function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
@@ -24,7 +25,8 @@ export function Dashboard({
   initialCategories, 
   locations, 
   allCategories,
-  vehicles
+  vehicles,
+  todayBookingsCount,
 }: DashboardProps) {
 
   return (
@@ -62,7 +64,12 @@ export function Dashboard({
             </Link>
             <div className="grid gap-2 sm:grid-cols-2">
               <QuickAction href="/accounting" label="Accounting" icon={<Wallet className="h-4 w-4 text-primary" />} />
-              <QuickAction href="/bookings" label="Bookings" icon={<ClipboardCheck className="h-4 w-4 text-primary" />} />
+              <Link href="/bookings?date=today" className="block sm:col-span-2">
+                <Button variant="outline" className="w-full justify-between group border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10">
+                  <span className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4 text-primary" />Today&apos;s Bookings</span>
+                  <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">{todayBookingsCount}</span>
+                </Button>
+              </Link>
               <QuickAction href="/contracts" label="Contracts" icon={<FileSignature className="h-4 w-4 text-primary" />} />
               <QuickAction href="/checkout" label="Checkout" icon={<Camera className="h-4 w-4 text-primary" />} />
               <QuickAction href="/returns" label="Returns" icon={<CalendarClock className="h-4 w-4 text-primary" />} />
