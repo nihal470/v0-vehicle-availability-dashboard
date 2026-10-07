@@ -110,8 +110,19 @@ export default function BookingForm({
     {} as Record<string, typeof vehicles>
   )
 
+  const selectedVehicle = vehicles.find((vehicle) => vehicle.id === formData.vehicle_id)
+  const durationDays = formData.start_date && formData.end_date ? Math.max(0, Math.ceil((new Date(`${formData.end_date}T12:00:00`).getTime() - new Date(`${formData.start_date}T12:00:00`).getTime()) / 86400000)) : 0
+
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
+    <form onSubmit={handleSubmit} className="overflow-hidden rounded-xl border bg-background shadow-sm">
+      <header className="border-b px-5 py-4 sm:px-8">
+        <div className="flex items-center justify-between"><div><p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">TravZ Fleet</p><h2 className="text-xl font-semibold tracking-tight">New Booking</h2></div><button type="button" onClick={onCancel} aria-label="Close booking form" className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground">×</button></div>
+        <div className="mt-6 flex items-start justify-between gap-2 overflow-x-auto pb-1">
+          {['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'].map((step, index) => <div key={step} className="flex min-w-[92px] flex-1 items-start gap-2"><div className="flex flex-1 flex-col items-center gap-2"><span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${index === 0 ? 'bg-sky-500 text-white ring-4 ring-sky-100' : 'bg-muted text-muted-foreground'}`}>{index + 1}</span><span className={`text-center text-xs ${index === 0 ? 'font-medium text-sky-600' : 'text-muted-foreground'}`}>{step}</span></div>{index < 5 && <span className="mt-5 h-px min-w-8 flex-1 border-t border-dashed border-muted-foreground/40" />}</div>)}
+        </div>
+      </header>
+      <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_348px]">
+        <section><h3 className="mb-5 text-lg font-semibold">Booking Details</h3><div className="grid gap-5 sm:grid-cols-2">
       {/* Vehicle Selection */}
       <div className="grid gap-2">
         <Label htmlFor="vehicle">Vehicle *</Label>
@@ -279,14 +290,17 @@ export default function BookingForm({
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 md:col-span-2">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Creating...' : 'Create Booking'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
+      <div className="flex flex-wrap gap-3 pt-2 sm:col-span-2">
+        <Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button>
+        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+      </div>
+        </div></section>
+        <aside className="space-y-4">
+          <div className="rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/70 p-5"><div className="flex items-center gap-2 text-sm font-medium text-slate-600"><span className="text-lg">◷</span> Total Duration</div><p className="mt-2 text-3xl font-bold text-indigo-600">{durationDays} Days</p><p className="mt-1 text-xs text-muted-foreground">Pickup: {formData.start_date || '----'} · Drop: {formData.end_date || '----'}</p></div>
+          <div className="rounded-xl border-2 border-dashed p-5"><h3 className="font-semibold">Price Details</h3><div className="mt-5 space-y-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Base Price ({durationDays} days)</span><span>₹0</span></div><div className="flex justify-between"><span className="text-muted-foreground">Extras</span><span>₹0</span></div><div className="flex justify-between"><span className="text-muted-foreground">GST (18%)</span><span>₹0</span></div><div className="flex justify-between border-t border-dashed pt-4 font-bold"><span>Total Amount</span><span className="text-lg text-sky-500">₹0</span></div></div></div>
+          <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/70 p-5"><p className="font-medium text-emerald-700">Security Deposit</p><p className="mt-2 text-xl font-bold text-emerald-600">₹5,000</p><p className="mt-1 text-xs text-emerald-700/80">Refundable after return</p></div>
+          <div className="rounded-xl border-2 border-dashed border-violet-200 bg-violet-50/60 p-5"><p className="text-xs font-medium uppercase tracking-wide text-violet-600">Current Step</p><p className="mt-1 font-semibold">Booking Details</p>{selectedVehicle && <p className="mt-2 text-sm text-muted-foreground">{selectedVehicle.make} {selectedVehicle.model}</p>}</div>
+        </aside>
       </div>
     </form>
   )
