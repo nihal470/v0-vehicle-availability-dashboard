@@ -180,13 +180,10 @@ export default function BookingForm({
         />
       </div>
 
-      <div className="grid gap-4 rounded-xl border bg-muted/20 p-4 md:col-span-2 md:grid-cols-2">
-        <div className="md:col-span-2"><p className="text-sm font-semibold">Flight details <span className="font-normal text-muted-foreground">(optional)</span></p><p className="text-xs text-muted-foreground">Useful for airport pickup or arrival coordination.</p></div>
-        <div className="grid gap-2"><Label htmlFor="airline">Airline</Label><Input id="airline" placeholder="e.g. Oman Air" value={formData.airline} onChange={(e) => setFormData({ ...formData, airline: e.target.value })} /></div>
-        <div className="grid gap-2"><Label htmlFor="flight_number">Flight number</Label><Input id="flight_number" placeholder="e.g. WY101" value={formData.flight_number} onChange={(e) => setFormData({ ...formData, flight_number: e.target.value })} /></div>
-        <div className="grid gap-2"><Label htmlFor="flight_arrival_time">Arrival time</Label><TimeSelect id="flight_arrival_time" value={formData.flight_arrival_time} onChange={(value) => setFormData({ ...formData, flight_arrival_time: value })} /></div>
-        <div className="grid gap-2"><Label htmlFor="flight_departure_time">Departure time</Label><TimeSelect id="flight_departure_time" value={formData.flight_departure_time} onChange={(value) => setFormData({ ...formData, flight_departure_time: value })} /></div>
-      </div>
+  <div className="grid gap-2 rounded-xl border bg-muted/20 p-4 md:col-span-2">
+    <div><p className="text-sm font-semibold">Flight details <span className="font-normal text-muted-foreground">(optional)</span></p><p className="text-xs text-muted-foreground">Add the flight number for airport pickup or arrival coordination.</p></div>
+    <div className="max-w-md"><Label htmlFor="flight_number">Flight number</Label><Input id="flight_number" placeholder="e.g. WY101" value={formData.flight_number} onChange={(e) => setFormData({ ...formData, flight_number: e.target.value })} /></div>
+  </div>
 
       {/* Start Date */}
       <div className="grid gap-2">
