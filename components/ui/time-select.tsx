@@ -10,11 +10,11 @@ interface TimeSelectProps {
   className?: string
 }
 
-// Build 15-minute interval options for a full 24-hour day (00:00 ... 23:45)
+// Build 30-minute interval options for a full 24-hour day (00:00 ... 23:30)
 const TIME_OPTIONS: { value: string; label: string }[] = (() => {
   const options: { value: string; label: string }[] = []
   for (let h = 0; h < 24; h++) {
-    for (let m = 0; m < 60; m += 15) {
+    for (let m = 0; m < 60; m += 30) {
       const value = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
       const period = h < 12 ? 'AM' : 'PM'
       const hour12 = h % 12 === 0 ? 12 : h % 12
@@ -26,7 +26,7 @@ const TIME_OPTIONS: { value: string; label: string }[] = (() => {
 })()
 
 /**
- * Time picker restricted to 15-minute intervals only.
+ * Time picker restricted to 30-minute intervals only.
  * Normalizes incoming values (e.g. "08:07:00") to the nearest stored option
  * so previously saved times still display.
  */
@@ -40,7 +40,7 @@ export function TimeSelect({ id, value, onChange, placeholder = 'Select time', c
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="max-h-60">
-        {/* Include the normalized value as a fallback option if it isn't a 15-min interval */}
+        {/* Include the normalized value as a fallback option if it isn't a 30-min interval */}
         {normalized && !TIME_OPTIONS.some((o) => o.value === normalized) && (
           <SelectItem value={normalized}>{normalized}</SelectItem>
         )}
