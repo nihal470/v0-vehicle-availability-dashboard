@@ -5,7 +5,7 @@ import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, ChevronRight, Info, Receipt, Wallet, ClipboardCheck, FileSignature, Camera, CalendarClock } from 'lucide-react'
+import { FileText, ChevronRight, Info, Receipt, ClipboardCheck, FileSignature, Camera, CalendarClock } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, Vehicle } from '@/lib/types'
 
@@ -63,8 +63,7 @@ export function Dashboard({
               </Button>
             </Link>
             <div className="grid gap-2 sm:grid-cols-2">
-              <QuickAction href="/accounting" label="Accounting" icon={<Wallet className="h-4 w-4 text-primary" />} />
-              <Link href="/bookings?date=today" className="block sm:col-span-2">
+                          <Link href="/bookings?date=today" className="block sm:col-span-2">
                 <Button variant="outline" className="w-full justify-between group border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10">
                   <span className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4 text-primary" />Today&apos;s Bookings</span>
                   <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">{todayBookingsCount}</span>
