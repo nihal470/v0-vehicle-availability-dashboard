@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { TimeSelect } from '@/components/ui/time-select'
 import {
   Select,
@@ -19,6 +19,7 @@ import type { Vehicle, Location, VehicleBooking } from '@/lib/types'
 interface BookingFormProps {
   vehicles: (Vehicle & { category: { name: string } | null })[]
   locations: Location[]
+  customers: { id: string; name: string; mobile: string | null; email: string | null }[]
   onBookingCreated: (booking: VehicleBooking & { vehicle: Vehicle & { category: { name: string } | null } }) => void
   onCancel: () => void
 }
@@ -26,12 +27,15 @@ interface BookingFormProps {
 export default function BookingForm({
   vehicles,
   locations,
+  customers,
   onBookingCreated,
   onCancel,
 }: BookingFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<number>(1)
   const [vehicleType, setVehicleType] = useState('all')
+  const [customerMode, setCustomerMode] = useState<'existing' | 'new'>('existing')
+  const [rentalType, setRentalType] = useState('daily')
   const [availableVehicles, setAvailableVehicles] = useState<typeof vehicles>(vehicles)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -137,11 +141,11 @@ export default function BookingForm({
       <header className="border-b px-5 py-4 sm:px-8">
         <div className="flex items-center justify-between"><div><p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">TravZ Fleet</p><h2 className="text-xl font-semibold tracking-tight">New Booking</h2></div><button type="button" onClick={onCancel} aria-label="Close booking form" className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground">×</button></div>
         <div className="mt-6 flex items-start justify-between gap-2 overflow-x-auto pb-1">
-          {['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'].map((stepName, index) => <div key={stepName} className="flex min-w-[92px] flex-1 items-start gap-2"><div className="flex flex-1 flex-col items-center gap-2"><span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${index < step ? 'bg-sky-500 text-white ring-4 ring-sky-100' : 'bg-muted text-muted-foreground'}`}>{index + 1}</span><span className={`text-center text-xs ${index === step - 1 ? 'font-medium text-sky-600' : 'text-muted-foreground'}`}>{stepName}</span></div>{index < 5 && <span className="mt-5 h-px min-w-8 flex-1 border-t border-dashed border-muted-foreground/40" />}</div>)}
+          {['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'].map((stepName, index) => <div key={stepName} className="flex min-w-[92px] flex-1 items-start gap-2"><div className="flex flex-1 flex-col items-center gap-2"><span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${index < step - 1 ? 'bg-emerald-500 text-white' : index === step - 1 ? 'bg-sky-500 text-white ring-4 ring-sky-100' : 'bg-muted text-muted-foreground'}`}>{index < step - 1 ? '✓' : index + 1}</span><span className={`text-center text-xs ${index === step - 1 ? 'font-medium text-sky-600' : 'text-muted-foreground'}`}>{stepName}</span></div>{index < 5 && <span className="mt-5 h-px min-w-8 flex-1 border-t border-dashed border-muted-foreground/40" />}</div>)}
         </div>
       </header>
       <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_348px]">
-        <section><h3 className="mb-5 text-lg font-semibold">Booking Details</h3><div className="grid gap-5 sm:grid-cols-2">
+        <section><h3 className="mb-5 text-lg font-semibold">{step === 1 ? 'Booking Details' : step === 2 ? 'Select Vehicle' : 'Customer Details'}</h3><div className="grid gap-5 sm:grid-cols-2">
       {/* Vehicle Type */}
       <div className="grid gap-2">
         <Label htmlFor="vehicle_type">Vehicle Type</Label>
@@ -153,47 +157,37 @@ export default function BookingForm({
 
       {step === 2 && <div className="grid gap-2 sm:col-span-2"><Label htmlFor="vehicle">Available Vehicle *</Label><Select value={formData.vehicle_id} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })}><SelectTrigger id="vehicle"><SelectValue placeholder={`${availableVehicles.length} vehicles available`} /></SelectTrigger><SelectContent>{Object.entries(vehiclesByCategory).map(([category, categoryVehicles]) => <div key={category}><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>{categoryVehicles.map((vehicle) => <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.make} {vehicle.model} - {vehicle.license_plate}</SelectItem>)}</div>)}</SelectContent></Select><p className="text-xs text-muted-foreground">Showing vehicles available for the selected pickup and return period.</p></div>}
 
-      {step === 3 && <>
-      {/* Customer Details */}
-      <div className="grid gap-2 sm:col-span-2"><p className="text-sm font-semibold">Customer Details</p><p className="text-xs text-muted-foreground">Choose an existing customer or enter a new customer record below.</p></div>
-      <div className="grid gap-2">
-        <Label htmlFor="customer_record">Customer record</Label>
-        <Select value={formData.customer_name ? 'new' : ''} onValueChange={(value) => { if (value === 'existing') setFormData({ ...formData, customer_name: '' }); else setFormData({ ...formData, customer_name: '' }) }}><SelectTrigger id="customer_record"><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent><SelectItem value="existing">Existing Customer — Select from records</SelectItem><SelectItem value="new">New Customer — Add new record</SelectItem></SelectContent></Select>
-      </div>
-      {/* Customer Name */}
-      <div className="grid gap-2">
-        <Label htmlFor="customer_name">Customer Name</Label>
-        <Input
-          id="customer_name"
-          placeholder="Enter customer name"
-          value={formData.customer_name}
-          onChange={(e) =>
-            setFormData({ ...formData, customer_name: e.target.value })
-          }
-        />
-      </div>
+      {step === 3 && (
+        <>
+          <div className="grid gap-2 sm:col-span-2"><p className="text-sm font-semibold">Customer Details</p></div>
+          <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
+            <button type="button" onClick={() => setCustomerMode('existing')} className={`rounded-xl border-2 p-5 text-center transition ${customerMode === 'existing' ? 'border-sky-500 bg-sky-50/70' : 'border-dashed border-muted hover:border-sky-300'}`}>
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600"><UserRound className="h-5 w-5" /></span><span className="mt-3 block font-medium">Existing Customer</span><span className="mt-1 block text-xs text-muted-foreground">Select from records</span>
+            </button>
+            <button type="button" onClick={() => { setCustomerMode('new'); setFormData({ ...formData, customer_name: '', customer_phone: '' }) }} className={`rounded-xl border-2 p-5 text-center transition ${customerMode === 'new' ? 'border-sky-500 bg-sky-50/70' : 'border-dashed border-muted hover:border-sky-300'}`}>
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><UserRound className="h-5 w-5" /></span><span className="mt-3 block font-medium">New Customer</span><span className="mt-1 block text-xs text-muted-foreground">Add new record</span>
+            </button>
+          </div>
+          {customerMode === 'existing' ? (
+            <div className="grid gap-2 sm:col-span-2"><Label htmlFor="customer_record">Select Customer</Label><Select value={customers.some((customer) => customer.name === formData.customer_name) ? formData.customer_name : ''} onValueChange={(value) => { const customer = customers.find((item) => item.name === value); setFormData({ ...formData, customer_name: customer?.name ?? '', customer_phone: customer?.mobile ?? '' }) }}><SelectTrigger id="customer_record"><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent>{customers.map((customer) => <SelectItem key={customer.id} value={customer.name}>{customer.name}{customer.mobile ? ` — ${customer.mobile}` : ''}</SelectItem>)}</SelectContent></Select></div>
+          ) : (
+            <div className="grid gap-5 sm:col-span-2 sm:grid-cols-2">
+              <div className="grid gap-2"><Label htmlFor="customer_name">Customer Name</Label><Input id="customer_name" placeholder="Enter customer name" value={formData.customer_name} onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })} /></div>
+              <div className="grid gap-2"><Label htmlFor="customer_phone">Customer Phone</Label><Input id="customer_phone" type="tel" placeholder="+974 XXXX XXXX" value={formData.customer_phone} onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} /></div>
+            </div>
+          )}
+        </>
+      )}
 
-      {/* Customer Phone */}
-      <div className="grid gap-2">
-        <Label htmlFor="customer_phone">Customer Phone</Label>
-        <Input
-          id="customer_phone"
-          type="tel"
-          placeholder="+974 XXXX XXXX"
-          value={formData.customer_phone}
-          onChange={(e) =>
-            setFormData({ ...formData, customer_phone: e.target.value })
-          }
-        />
-      </div>
-      </>}
-
-  {step === 3 && <div className="grid gap-2 rounded-xl border bg-muted/20 p-4 md:col-span-2">
-    <div><p className="text-sm font-semibold">Flight details <span className="font-normal text-muted-foreground">(optional)</span></p><p className="text-xs text-muted-foreground">Add the flight number for airport pickup or arrival coordination.</p></div>
-    <div className="max-w-md"><Label htmlFor="flight_number">Flight number</Label><Input id="flight_number" placeholder="e.g. WY101" value={formData.flight_number} onChange={(e) => setFormData({ ...formData, flight_number: e.target.value })} /></div>
-  </div>}
 
       {step === 1 && <>
+      <div className="grid gap-2 sm:col-span-2">
+        <Label htmlFor="rental_type">Rental Type</Label>
+        <Select value={rentalType} onValueChange={setRentalType}>
+          <SelectTrigger id="rental_type"><SelectValue placeholder="Select rental type" /></SelectTrigger>
+          <SelectContent><SelectItem value="daily">Daily</SelectItem><SelectItem value="weekly">Weekly</SelectItem><SelectItem value="monthly">Monthly</SelectItem></SelectContent>
+        </Select>
+      </div>
       {/* Start Date */}
       <div className="grid gap-2">
         <Label htmlFor="start_date">Start Date *</Label>
@@ -202,7 +196,7 @@ export default function BookingForm({
           type="date"
           value={formData.start_date}
           onChange={(e) =>
-            setFormData({ ...formData, start_date: e.target.value })
+            setFormData({ ...formData, start_date: e.target.value, end_date: formData.end_date || e.target.value })
           }
           required
         />
@@ -219,9 +213,10 @@ export default function BookingForm({
         <Input
           id="end_date"
           type="date"
+          min={formData.start_date || undefined}
           value={formData.end_date}
           onChange={(e) =>
-            setFormData({ ...formData, end_date: e.target.value })
+            setFormData({ ...formData, end_date: e.target.value < formData.start_date ? formData.start_date : e.target.value })
           }
           required
         />
@@ -276,20 +271,6 @@ export default function BookingForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
-      </>}
-
-      {step === 3 && <>
-      {/* Notes */}
-      <div className="grid gap-2 md:col-span-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          placeholder="Any additional notes about this booking..."
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          rows={3}
-        />
       </div>
       </>}
 

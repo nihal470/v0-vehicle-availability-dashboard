@@ -5,7 +5,7 @@ import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, ChevronRight, Info, Receipt, Wallet, ClipboardCheck, FileSignature, Camera, CalendarClock } from 'lucide-react'
+import { FileText, ChevronRight, Info, Receipt, ClipboardCheck } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, Vehicle } from '@/lib/types'
 
@@ -30,15 +30,15 @@ export function Dashboard({
 }: DashboardProps) {
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {/* Returns & Stats Section */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <ReturnsSummary />
         </div>
-        <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <Card className="overflow-hidden border-primary/15 bg-background/90 shadow-sm"><div className="h-1 bg-gradient-to-r from-primary via-cyan-500 to-emerald-500" />
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
               <Info className="h-4 w-4 text-primary" />
               Quick Actions
             </CardTitle>
@@ -63,16 +63,12 @@ export function Dashboard({
               </Button>
             </Link>
             <div className="grid gap-2 sm:grid-cols-2">
-              <QuickAction href="/accounting" label="Accounting" icon={<Wallet className="h-4 w-4 text-primary" />} />
-              <Link href="/bookings?date=today" className="block sm:col-span-2">
+                          <Link href="/bookings?date=today" className="block sm:col-span-2">
                 <Button variant="outline" className="w-full justify-between group border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10">
                   <span className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4 text-primary" />Today&apos;s Bookings</span>
                   <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">{todayBookingsCount}</span>
                 </Button>
               </Link>
-              <QuickAction href="/contracts" label="Contracts" icon={<FileSignature className="h-4 w-4 text-primary" />} />
-              <QuickAction href="/checkout" label="Checkout" icon={<Camera className="h-4 w-4 text-primary" />} />
-              <QuickAction href="/returns" label="Returns" icon={<CalendarClock className="h-4 w-4 text-primary" />} />
             </div>
           </CardContent>
         </Card>

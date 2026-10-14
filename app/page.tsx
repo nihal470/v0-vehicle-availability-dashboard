@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Dashboard } from '@/components/fleet/dashboard'
 import type { CategoryWithVehicles, FleetStats, Location, VehicleCategory, Vehicle, VehicleBooking } from '@/lib/types'
-import { Truck, Gauge, FileText, Car, Activity, GanttChartSquare, Building2, Wrench, CalendarCheck } from 'lucide-react'
+import { Truck, Gauge, FileText, Car, Activity, GanttChartSquare, Building2, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
@@ -79,9 +79,9 @@ export default async function FleetPage() {
   ])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/.12),transparent_32%),linear-gradient(180deg,hsl(var(--muted)/.45),hsl(var(--background)))]">
       {/* Professional Header */}
-      <header className="sticky top-0 z-50 border-b bg-slate-900 text-white shadow-lg">
+      <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/95 text-white shadow-xl backdrop-blur">
         <div className="mx-auto max-w-[1800px]">
           {/* Top Bar */}
           <div className="flex items-center justify-between px-6 py-4">
@@ -148,17 +148,6 @@ export default async function FleetPage() {
                 size="sm"
                 className="text-slate-300 hover:text-white hover:bg-slate-800"
               >
-                <Link href="/availability">
-                  <CalendarCheck className="mr-2 h-4 w-4" />
-                  Availability
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="text-slate-300 hover:text-white hover:bg-slate-800"
-              >
                 <Link href="/branches">
                   <Building2 className="mr-2 h-4 w-4" />
                   Branches
@@ -195,7 +184,11 @@ export default async function FleetPage() {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-[1800px] px-4 py-6 sm:px-6 lg:py-8">
+        <section className="mb-8 flex flex-col justify-between gap-5 rounded-3xl border border-primary/15 bg-background/80 p-6 shadow-sm backdrop-blur sm:flex-row sm:items-end sm:p-8">
+          <div><p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">Operations center</p><h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Good to see you, fleet team.</h2><p className="mt-2 max-w-xl text-muted-foreground">Monitor today&apos;s vehicles, bookings, returns, and service alerts from one focused workspace.</p></div>
+          <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-4 py-2 text-sm text-muted-foreground"><span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_hsl(var(--success)/.15)]" /> Live fleet data</div>
+        </section>
     <Dashboard
       initialCategories={categories}
       locations={locations}
