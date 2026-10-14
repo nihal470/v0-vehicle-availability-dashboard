@@ -30,15 +30,15 @@ export function Dashboard({
 }: DashboardProps) {
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {/* Returns & Stats Section */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <ReturnsSummary />
         </div>
-        <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <Card className="overflow-hidden border-primary/15 bg-background/90 shadow-sm"><div className="h-1 bg-gradient-to-r from-primary via-cyan-500 to-emerald-500" />
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
               <Info className="h-4 w-4 text-primary" />
               Quick Actions
             </CardTitle>
