@@ -5,7 +5,7 @@ import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import { DocumentExpiry } from './document-expiry'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, ChevronRight, Info, Receipt, ClipboardCheck, FileSignature, Camera, CalendarClock } from 'lucide-react'
+import { FileText, ChevronRight, Info, Receipt, ClipboardCheck, CalendarClock } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, Vehicle } from '@/lib/types'
 
@@ -69,8 +69,6 @@ export function Dashboard({
                   <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">{todayBookingsCount}</span>
                 </Button>
               </Link>
-              <QuickAction href="/contracts" label="Contracts" icon={<FileSignature className="h-4 w-4 text-primary" />} />
-              <QuickAction href="/checkout" label="Checkout" icon={<Camera className="h-4 w-4 text-primary" />} />
               <QuickAction href="/returns" label="Returns" icon={<CalendarClock className="h-4 w-4 text-primary" />} />
             </div>
           </CardContent>
