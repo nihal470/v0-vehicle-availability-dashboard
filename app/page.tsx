@@ -61,6 +61,7 @@ async function getFleetData() {
     locations: locations || [],
     allCategories: categories || [],
     vehicles: allVehicles,
+    bookings: bookings || [],
     stats,
     todayBookingsCount: todayBookings?.length ?? 0,
   }
@@ -73,7 +74,7 @@ async function getCurrentUserEmail() {
 }
 
 export default async function FleetPage() {
-  const [{ categories, locations, allCategories, vehicles, stats, todayBookingsCount }, userEmail] = await Promise.all([
+  const [{ categories, locations, allCategories, vehicles, bookings, stats, todayBookingsCount }, userEmail] = await Promise.all([
     getFleetData(),
     getCurrentUserEmail(),
   ])
@@ -193,8 +194,9 @@ export default async function FleetPage() {
       initialCategories={categories}
       locations={locations}
       allCategories={allCategories}
-      vehicles={vehicles}
-      todayBookingsCount={todayBookingsCount}
+  vehicles={vehicles}
+  bookings={bookings || []}
+  todayBookingsCount={todayBookingsCount}
     />
       </main>
 
