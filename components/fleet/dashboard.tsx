@@ -54,6 +54,11 @@ export function Dashboard({
         <div className="lg:col-span-2">
           <ReturnsSummary />
         </div>
+        <div className="flex flex-col gap-6">
+        <Card className="overflow-hidden border-primary/15 bg-background/90 shadow-sm"><div className="h-1 bg-gradient-to-r from-primary via-cyan-500 to-emerald-500" />
+          <CardHeader className="pb-3"><div className="flex items-start justify-between gap-3"><div><CardTitle className="text-base font-semibold tracking-tight">Upcoming bookings</CardTitle><p className="text-xs text-muted-foreground">Next scheduled pickups</p></div><Link href="/bookings" className="text-xs font-semibold text-primary hover:underline">View all</Link></div></CardHeader>
+          <CardContent className="flex flex-col gap-2">{bookings.filter((booking) => ['booked', 'reserved'].includes(booking.status)).slice(0, 7).map((booking) => <div key={booking.id} className="rounded-lg border bg-muted/20 px-3 py-2"><div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-medium">{booking.customer_name || 'Customer not selected'}</p><span className="shrink-0 text-xs font-medium text-primary">{booking.start_date}</span></div><p className="mt-1 text-xs text-muted-foreground">{booking.vehicle_id ? 'Vehicle assigned' : 'Vehicle pending'} · {booking.pickup_time || 'Time not set'}</p></div>)}{!bookings.filter((booking) => ['booked', 'reserved'].includes(booking.status)).length && <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">No upcoming bookings</div>}</CardContent>
+        </Card>
         <Card className="overflow-hidden border-primary/15 bg-background/90 shadow-sm"><div className="h-1 bg-gradient-to-r from-primary via-cyan-500 to-emerald-500" />
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
@@ -90,6 +95,7 @@ export function Dashboard({
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
       
       {/* Insurance, Mulkiya & Service Monitoring */}
