@@ -24,8 +24,8 @@ async function getFleetData() {
   ] = await Promise.all([
     supabase.from('vehicle_categories').select('*').order('name'),
     supabase.from('vehicles').select('*').order('make, model'),
-    supabase.from('vehicle_bookings').select('*').eq('status', 'booked'),
-    supabase.from('vehicle_bookings').select('id').eq('status', 'booked').eq('start_date', format(new Date(), 'yyyy-MM-dd')),
+    supabase.from('vehicle_bookings').select('*').in('status', ['booked', 'reserved']).order('start_date', { ascending: true }),
+    supabase.from('vehicle_bookings').select('id').in('status', ['booked', 'reserved']).eq('start_date', format(new Date(), 'yyyy-MM-dd')),
     supabase.from('locations').select('*').order('name'),
   ])
 
