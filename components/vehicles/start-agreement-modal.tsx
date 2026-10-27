@@ -41,7 +41,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
   const [formData, setFormData] = useState({
     customer_name: '',
     start_date: format(new Date(), 'yyyy-MM-dd'),
-    return_date: format(addDays(new Date(), 3), 'yyyy-MM-dd'),
+    return_date: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
     return_time: '',
     location_id: vehicle.location_id || '',
     expected_return_location: '',
@@ -97,7 +97,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
       setShowAddLocation(false)
       setNewLocationName('')
       const defaultStart = isEdit && vehicle.start_date ? vehicle.start_date : format(new Date(), 'yyyy-MM-dd')
-      const defaultReturn = isEdit && vehicle.return_date ? vehicle.return_date : format(addDays(new Date(`${defaultStart}T12:00:00`), 3), 'yyyy-MM-dd')
+      const defaultReturn = isEdit && vehicle.return_date ? vehicle.return_date : format(addDays(new Date(`${defaultStart}T12:00:00`), 1), 'yyyy-MM-dd')
       setFormData({
         customer_name: isEdit ? (vehicle.customer_name || '') : '',
         start_date: isEdit ? (vehicle.start_date || format(new Date(), 'yyyy-MM-dd')) : format(new Date(), 'yyyy-MM-dd'),
@@ -118,7 +118,7 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
         return {
           ...prev,
           start_date: value,
-          return_date: format(addDays(new Date(`${value}T12:00:00`), 3), 'yyyy-MM-dd'),
+          return_date: format(addDays(new Date(`${value}T12:00:00`), 1), 'yyyy-MM-dd'),
         }
       }
       return { ...prev, [field]: value }
