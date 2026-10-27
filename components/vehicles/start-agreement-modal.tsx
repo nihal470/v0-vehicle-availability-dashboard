@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { PlayCircle, Car, MapPin, Plus, Check, X, Pencil } from 'lucide-react'
-import { format } from 'date-fns'
+import { addDays, format } from 'date-fns'
 
 interface Props {
   vehicle: Vehicle
@@ -41,12 +41,12 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
   const [formData, setFormData] = useState({
     customer_name: '',
     start_date: format(new Date(), 'yyyy-MM-dd'),
-    return_date: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    return_date: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
     return_time: '',
     location_id: vehicle.location_id || '',
     expected_return_location: '',
     ag_no: '',
-    rental_type: 'monthly' as 'daily' | 'monthly',
+    rental_type: 'daily' as 'daily' | 'monthly',
     current_km: vehicle.current_km?.toString() || '',
   })
 
@@ -96,7 +96,8 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
     if (open) {
       setShowAddLocation(false)
       setNewLocationName('')
-      const defaultReturn = format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
+      const defaultStart = isEdit && vehicle.start_date ? vehicle.start_date : format(new Date(), 'yyyy-MM-dd')
+      const defaultReturn = isEdit && vehicle.return_date ? vehicle.return_date : format(addDays(new Date(`${defaultStart}T12:00:00`), 1), 'yyyy-MM-dd')
       setFormData({
         customer_name: isEdit ? (vehicle.customer_name || '') : '',
         start_date: isEdit ? (vehicle.start_date || format(new Date(), 'yyyy-MM-dd')) : format(new Date(), 'yyyy-MM-dd'),
@@ -105,14 +106,23 @@ export function StartAgreementModal({ vehicle, open, onOpenChange, mode = 'start
         location_id: vehicle.location_id || '',
         expected_return_location: isEdit ? (vehicle.expected_return_location || '') : '',
         ag_no: isEdit ? (vehicle.ag_no || '') : '',
-        rental_type: isEdit ? ((vehicle.rental_type as 'daily' | 'monthly') || 'monthly') : 'monthly',
+        rental_type: isEdit ? ((vehicle.rental_type as 'daily' | 'monthly') || 'daily') : 'daily',
         current_km: vehicle.current_km?.toString() || '',
       })
     }
   }, [vehicle, open, isEdit])
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      if (field === 'start_date' && value) {
+        return {
+          ...prev,
+          start_date: value,
+          return_date: format(addDays(new Date(`${value}T12:00:00`), 1), 'yyyy-MM-dd'),
+        }
+      }
+      return { ...prev, [field]: value }
+    })
   }
 
   const handleStartAgreement = async () => {

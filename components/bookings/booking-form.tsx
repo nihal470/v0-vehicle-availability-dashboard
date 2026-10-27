@@ -36,6 +36,8 @@ export default function BookingForm({
   const [vehicleType, setVehicleType] = useState('all')
   const [customerMode, setCustomerMode] = useState<'existing' | 'new'>('existing')
   const [rentalType, setRentalType] = useState('daily')
+  const [extras, setExtras] = useState<string[]>([])
+  const [paymentMethod, setPaymentMethod] = useState('pay_later')
   const [availableVehicles, setAvailableVehicles] = useState<typeof vehicles>(vehicles)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -145,7 +147,7 @@ export default function BookingForm({
         </div>
       </header>
       <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_348px]">
-        <section><h3 className="mb-5 text-lg font-semibold">{step === 1 ? 'Booking Details' : step === 2 ? 'Select Vehicle' : 'Customer Details'}</h3><div className="grid gap-5 sm:grid-cols-2">
+        <section><h3 className="mb-5 text-lg font-semibold">{['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'][step - 1]}</h3><div className="grid gap-5 sm:grid-cols-2">
       {/* Vehicle Type */}
       <div className="grid gap-2">
         <Label htmlFor="vehicle_type">Vehicle Type</Label>
@@ -274,6 +276,12 @@ export default function BookingForm({
       </div>
       </>}
 
+      {step === 4 && <div className="grid gap-4 sm:col-span-2"><div className="rounded-xl border bg-muted/20 p-4"><p className="font-medium">Base rental</p><div className="mt-2 flex justify-between text-sm"><span className="text-muted-foreground">{durationDays} day{durationDays === 1 ? '' : 's'} × Daily rate</span><span>₹0</span></div></div><fieldset className="grid gap-3"><legend className="text-sm font-semibold">Extras</legend>{['Additional driver', 'Child seat', 'GPS navigation'].map((extra) => <label key={extra} className="flex items-center gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" checked={extras.includes(extra)} onChange={(event) => setExtras((current) => event.target.checked ? [...current, extra] : current.filter((item) => item !== extra))} />{extra}<span className="ml-auto text-muted-foreground">₹0</span></label>)}</fieldset></div>}
+
+      {step === 5 && <div className="grid gap-3 sm:col-span-2"><p className="text-sm font-semibold">Payment method</p>{[['pay_later', 'Pay later'], ['cash', 'Cash'], ['card', 'Card']].map(([value, label]) => <label key={value} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${paymentMethod === value ? 'border-primary bg-primary/5' : ''}`}><input type="radio" name="payment_method" value={value} checked={paymentMethod === value} onChange={(event) => setPaymentMethod(event.target.value)} /><span>{label}</span></label>)}</div>}
+
+      {step === 6 && <div className="grid gap-4 sm:col-span-2"><div className="rounded-xl border bg-muted/20 p-4"><h4 className="font-semibold">Booking summary</h4><dl className="mt-3 grid gap-2 text-sm"><div className="flex justify-between"><dt className="text-muted-foreground">Vehicle</dt><dd>{selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : 'Not selected'}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Customer</dt><dd>{formData.customer_name || 'Not selected'}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Rental period</dt><dd>{formData.start_date} to {formData.end_date}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Payment</dt><dd>{paymentMethod === 'pay_later' ? 'Pay later' : paymentMethod}</dd></div></dl></div><p className="text-sm text-muted-foreground">Review the details before creating this booking.</p></div>}
+
       {/* Error Message */}
       {error && (
         <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive md:col-span-2">
@@ -282,7 +290,7 @@ export default function BookingForm({
       )}
 
       <div className="flex flex-wrap gap-3 pt-2 sm:col-span-2">
-        {step === 1 ? <Button type="button" onClick={() => { if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) { setError('Please select pickup and return dates and times'); return } if (new Date(`${formData.end_date}T${formData.end_time}:00Z`) <= new Date(`${formData.start_date}T${formData.start_time}:00Z`)) { setError('Return time must be after pickup time'); return } setError(null); setStep(2) }}>Next: Select Vehicle</Button> : step === 2 ? <><Button type="button" disabled={!formData.vehicle_id} onClick={() => { if (!formData.vehicle_id) { setError('Please select an available vehicle'); return } setError(null); setStep(3) }}>Next: Customer Details</Button><Button type="button" variant="outline" onClick={() => setStep(1)}>Previous</Button></> : <><Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button><Button type="button" variant="outline" onClick={() => setStep(2)}>Previous</Button></>}
+        {step === 1 ? <Button type="button" onClick={() => { if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) { setError('Please select pickup and return dates and times'); return } if (new Date(`${formData.end_date}T${formData.end_time}:00Z`) <= new Date(`${formData.start_date}T${formData.start_time}:00Z`)) { setError('Return time must be after pickup time'); return } setError(null); setStep(2) }}>Next: Select Vehicle</Button> : step === 2 ? <><Button type="button" disabled={!formData.vehicle_id} onClick={() => { if (!formData.vehicle_id) { setError('Please select an available vehicle'); return } setError(null); setStep(3) }}>Next: Customer Details</Button><Button type="button" variant="outline" onClick={() => setStep(1)}>Previous</Button></> : step === 3 ? <><Button type="button" onClick={() => { if (!formData.customer_name) { setError('Please select or enter a customer'); return } setError(null); setStep(4) }}>Next: Pricing & Extras</Button><Button type="button" variant="outline" onClick={() => setStep(2)}>Previous</Button></> : step === 4 ? <><Button type="button" onClick={() => { setError(null); setStep(5) }}>Next: Payment</Button><Button type="button" variant="outline" onClick={() => setStep(3)}>Previous</Button></> : step === 5 ? <><Button type="button" onClick={() => { setError(null); setStep(6) }}>Next: Review & Confirm</Button><Button type="button" variant="outline" onClick={() => setStep(4)}>Previous</Button></> : <><Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Booking'}</Button><Button type="button" variant="outline" onClick={() => setStep(5)}>Previous</Button></>}
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
         </div>
@@ -291,7 +299,7 @@ export default function BookingForm({
           <div className="rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/70 p-5"><div className="flex items-center gap-2 text-sm font-medium text-slate-600"><span className="text-lg">◷</span> Total Duration</div><p className="mt-2 text-3xl font-bold text-indigo-600">{durationDays} Days</p><p className="mt-1 text-xs text-muted-foreground">Pickup: {formData.start_date || '----'} · Drop: {formData.end_date || '----'}</p></div>
           <div className="rounded-xl border-2 border-dashed p-5"><h3 className="font-semibold">Price Details</h3><div className="mt-5 space-y-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Base Price ({durationDays} days)</span><span>₹0</span></div><div className="flex justify-between"><span className="text-muted-foreground">Extras</span><span>₹0</span></div><div className="flex justify-between"><span className="text-muted-foreground">GST (18%)</span><span>₹0</span></div><div className="flex justify-between border-t border-dashed pt-4 font-bold"><span>Total Amount</span><span className="text-lg text-sky-500">₹0</span></div></div></div>
           <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/70 p-5"><p className="font-medium text-emerald-700">Security Deposit</p><p className="mt-2 text-xl font-bold text-emerald-600">₹5,000</p><p className="mt-1 text-xs text-emerald-700/80">Refundable after return</p></div>
-          <div className="rounded-xl border-2 border-dashed border-violet-200 bg-violet-50/60 p-5"><p className="text-xs font-medium uppercase tracking-wide text-violet-600">Current Step</p><p className="mt-1 font-semibold">{step === 1 ? 'Booking Details' : step === 2 ? 'Select Vehicle' : 'Customer Details'}</p>{selectedVehicle && <p className="mt-2 text-sm text-muted-foreground">{selectedVehicle.make} {selectedVehicle.model}</p>}</div>
+          <div className="rounded-xl border-2 border-dashed border-violet-200 bg-violet-50/60 p-5"><p className="text-xs font-medium uppercase tracking-wide text-violet-600">Current Step</p><p className="mt-1 font-semibold">{['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'][step - 1]}</p>{selectedVehicle && <p className="mt-2 text-sm text-muted-foreground">{selectedVehicle.make} {selectedVehicle.model}</p>}</div>
         </aside>
       </div>
     </form>

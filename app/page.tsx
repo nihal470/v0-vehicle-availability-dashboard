@@ -24,8 +24,8 @@ async function getFleetData() {
   ] = await Promise.all([
     supabase.from('vehicle_categories').select('*').order('name'),
     supabase.from('vehicles').select('*').order('make, model'),
-    supabase.from('vehicle_bookings').select('*').eq('status', 'booked'),
-    supabase.from('vehicle_bookings').select('id').eq('status', 'booked').eq('start_date', format(new Date(), 'yyyy-MM-dd')),
+    supabase.from('vehicle_bookings').select('*').in('status', ['booked', 'reserved']).order('start_date', { ascending: true }),
+    supabase.from('vehicle_bookings').select('id').in('status', ['booked', 'reserved']).eq('start_date', format(new Date(), 'yyyy-MM-dd')),
     supabase.from('locations').select('*').order('name'),
   ])
 
@@ -61,6 +61,7 @@ async function getFleetData() {
     locations: locations || [],
     allCategories: categories || [],
     vehicles: allVehicles,
+    bookings: bookings || [],
     stats,
     todayBookingsCount: todayBookings?.length ?? 0,
   }
@@ -73,7 +74,7 @@ async function getCurrentUserEmail() {
 }
 
 export default async function FleetPage() {
-  const [{ categories, locations, allCategories, vehicles, stats, todayBookingsCount }, userEmail] = await Promise.all([
+  const [{ categories, locations, allCategories, vehicles, bookings, stats, todayBookingsCount }, userEmail] = await Promise.all([
     getFleetData(),
     getCurrentUserEmail(),
   ])
@@ -193,8 +194,9 @@ export default async function FleetPage() {
       initialCategories={categories}
       locations={locations}
       allCategories={allCategories}
-      vehicles={vehicles}
-      todayBookingsCount={todayBookingsCount}
+  vehicles={vehicles}
+  bookings={bookings || []}
+  todayBookingsCount={todayBookingsCount}
     />
       </main>
 
