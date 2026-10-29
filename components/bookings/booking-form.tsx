@@ -34,12 +34,17 @@ export default function BookingForm({
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<number>(1)
   const [vehicleType, setVehicleType] = useState('all')
+  const [datePreset, setDatePreset] = useState<'today' | 'tomorrow' | 'custom'>('today')
   const [customerMode, setCustomerMode] = useState<'existing' | 'new'>('existing')
   const [rentalType, setRentalType] = useState('daily')
   const [extras, setExtras] = useState<string[]>([])
   const [paymentMethod, setPaymentMethod] = useState('pay_later')
   const [availableVehicles, setAvailableVehicles] = useState<typeof vehicles>(vehicles)
   const [error, setError] = useState<string | null>(null)
+  const toDateInput = (date: Date) => date.toISOString().slice(0, 10)
+  const today = toDateInput(new Date())
+  const tomorrow = toDateInput(new Date(Date.now() + 24 * 60 * 60 * 1000))
+
   const [formData, setFormData] = useState({
     vehicle_id: '',
     customer_name: '',
@@ -48,9 +53,9 @@ export default function BookingForm({
     flight_number: '',
     flight_arrival_time: '',
     flight_departure_time: '',
-    start_date: '',
+    start_date: toDateInput(new Date()),
     start_time: '09:00',
-    end_date: '',
+    end_date: toDateInput(new Date(Date.now() + 24 * 60 * 60 * 1000)),
     end_time: '09:00',
     pickup_location_id: '',
     dropoff_location_id: '',
@@ -148,16 +153,15 @@ export default function BookingForm({
       </header>
       <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_348px]">
         <section><h3 className="mb-5 text-lg font-semibold">{['Booking Details', 'Select Vehicle', 'Customer Details', 'Pricing & Extras', 'Payment', 'Review & Confirm'][step - 1]}</h3><div className="grid gap-5 sm:grid-cols-2">
-      {/* Vehicle Type */}
-      <div className="grid gap-2">
-        <Label htmlFor="vehicle_type">Vehicle Type</Label>
+      {step === 2 && <>
+      <div className="grid gap-2 sm:col-span-2">
+        <Label htmlFor="vehicle_type">Vehicle Type *</Label>
         <Select value={vehicleType} onValueChange={(value) => { setVehicleType(value); setFormData({ ...formData, vehicle_id: '' }) }}>
           <SelectTrigger id="vehicle_type"><SelectValue placeholder="Select vehicle type" /></SelectTrigger>
-          <SelectContent><SelectItem value="all">All vehicle types</SelectItem>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
+          <SelectContent>{categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
         </Select>
       </div>
-
-      {step === 2 && <div className="grid gap-2 sm:col-span-2"><Label htmlFor="vehicle">Available Vehicle *</Label><Select value={formData.vehicle_id} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })}><SelectTrigger id="vehicle"><SelectValue placeholder={`${availableVehicles.length} vehicles available`} /></SelectTrigger><SelectContent>{Object.entries(vehiclesByCategory).map(([category, categoryVehicles]) => <div key={category}><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>{categoryVehicles.map((vehicle) => <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.make} {vehicle.model} - {vehicle.license_plate}</SelectItem>)}</div>)}</SelectContent></Select><p className="text-xs text-muted-foreground">Showing vehicles available for the selected pickup and return period.</p></div>}
+      <div className="grid gap-2 sm:col-span-2"><Label htmlFor="vehicle">Available Vehicle *</Label><Select value={formData.vehicle_id} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })}><SelectTrigger id="vehicle"><SelectValue placeholder={`${availableVehicles.length} vehicles available`} /></SelectTrigger><SelectContent>{Object.entries(vehiclesByCategory).map(([category, categoryVehicles]) => <div key={category}><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>{categoryVehicles.map((vehicle) => <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.make} {vehicle.model} - {vehicle.license_plate}</SelectItem>)}</div>)}</SelectContent></Select><p className="text-xs text-muted-foreground">Showing vehicles available for the selected pickup and return period.</p></div></>}
 
       {step === 3 && (
         <>
@@ -183,6 +187,7 @@ export default function BookingForm({
 
 
       {step === 1 && <>
+      <div className="grid gap-3 sm:col-span-2"><Label>Rental dates</Label><div className="flex flex-wrap gap-2">{[['today', 'Today'], ['tomorrow', 'Tomorrow'], ['custom', 'Custom']].map(([value, label]) => <Button key={value} type="button" size="sm" variant={datePreset === value ? 'default' : 'outline'} onClick={() => { setDatePreset(value as 'today' | 'tomorrow' | 'custom'); if (value !== 'custom') setFormData((current) => ({ ...current, start_date: value === 'today' ? today : tomorrow, end_date: value === 'today' ? tomorrow : toDateInput(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)) })) }}>{label}</Button>)}</div>{datePreset !== 'custom' && <p className="text-xs text-muted-foreground">{formData.start_date} to {formData.end_date}</p>}</div>
       <div className="grid gap-2 sm:col-span-2">
         <Label htmlFor="rental_type">Rental Type</Label>
         <Select value={rentalType} onValueChange={setRentalType}>
@@ -197,9 +202,10 @@ export default function BookingForm({
           id="start_date"
           type="date"
           value={formData.start_date}
-          onChange={(e) =>
+          onChange={(e) => {
+            setDatePreset('custom')
             setFormData({ ...formData, start_date: e.target.value, end_date: formData.end_date || e.target.value })
-          }
+          }}
           required
         />
       </div>
@@ -217,9 +223,10 @@ export default function BookingForm({
           type="date"
           min={formData.start_date || undefined}
           value={formData.end_date}
-          onChange={(e) =>
+          onChange={(e) => {
+            setDatePreset('custom')
             setFormData({ ...formData, end_date: e.target.value < formData.start_date ? formData.start_date : e.target.value })
-          }
+          }}
           required
         />
       </div>
