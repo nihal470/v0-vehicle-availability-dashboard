@@ -101,8 +101,8 @@ export function ReturnsSummary() {
   const dueTodayCount = schedules.filter(s => s.status === 'due-today').length
   const dueSoonCount = schedules.filter(s => s.status === 'due-tomorrow' || s.status === 'due-soon').length
   
-  // Show at least the top 7 urgent returns when available
-  const urgentReturns = schedules.slice(0, 7)
+  // Show the five most urgent returns
+  const urgentReturns = schedules.slice(0, 5)
 
   const getStatusBadge = (status: ReturnSchedule['status']) => {
     switch (status) {
