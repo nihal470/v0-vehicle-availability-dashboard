@@ -63,7 +63,7 @@ export default async function VehicleLogsPage() {
     return acc
   }, {} as Record<string, number>)
 
-  const topOffenders = Object.entries(driverFines)
+  const topOffenders = (Object.entries(driverFines) as [string, number][])
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
 
@@ -183,7 +183,7 @@ export default async function VehicleLogsPage() {
                     </Badge>
                     <span className="font-medium">{driver}</span>
                     <Badge variant="secondary" className="bg-red-100 text-red-700">
-                      OMR {amount.toLocaleString()}
+                      OMR {Number(amount).toLocaleString()}
                     </Badge>
                   </div>
                 ))}
