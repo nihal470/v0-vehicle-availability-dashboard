@@ -53,7 +53,7 @@ import { InspectionCaptureModal } from './inspection-capture-modal'
 import { InspectionGalleryModal } from './inspection-gallery-modal'
 import { UpdatePaymentModal } from './update-payment-modal'
 import { BulkUpdateModal } from './bulk-update-modal'
-import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek, addDays } from 'date-fns'
+import { format } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -67,9 +67,6 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [branchFilter, setBranchFilter] = useState<string>('all')
-  const [availabilityPreset, setAvailabilityPreset] = useState<'tomorrow' | 'week' | 'month' | 'custom'>('tomorrow')
-  const [availabilityFrom, setAvailabilityFrom] = useState(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'))
-  const [availabilityTo, setAvailabilityTo] = useState(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'))
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showCloseModal, setShowCloseModal] = useState(false)
@@ -156,26 +153,13 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
     returned: returnedVehicles.length,
   }), [activeVehicles, returnedVehicles])
 
-  const availabilityRange = useMemo(() => {
-    const today = new Date()
-    if (availabilityPreset === 'tomorrow') return { from: format(addDays(today, 1), 'yyyy-MM-dd'), to: format(addDays(today, 1), 'yyyy-MM-dd') }
-    if (availabilityPreset === 'week') return { from: format(startOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd'), to: format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd') }
-    if (availabilityPreset === 'month') return { from: format(startOfMonth(today), 'yyyy-MM-dd'), to: format(endOfMonth(today), 'yyyy-MM-dd') }
-    return { from: availabilityFrom, to: availabilityTo }
-  }, [availabilityPreset, availabilityFrom, availabilityTo])
-
-  const availabilityVehicles = useMemo(() => activeVehicles.filter((vehicle) => {
-    const hasActiveRental = vehicle.start_date && vehicle.return_date && vehicle.start_date <= availabilityRange.to && vehicle.return_date >= availabilityRange.from
-    return !hasActiveRental || Boolean(vehicle.return_date && vehicle.return_date >= availabilityRange.from)
-  }), [activeVehicles, availabilityRange])
-
   const filteredVehicles = useMemo(() => {
     // Use active vehicles by default, or include returned if filter is specifically 'returned' or showReturnedVehicles is true
     const baseVehicles = statusFilter === 'returned' 
       ? returnedVehicles 
       : showReturnedVehicles 
-        ? vehicles 
-        : availabilityVehicles
+        ? vehicles
+        : activeVehicles
     
     return baseVehicles.filter((vehicle) => {
       const matchesSearch = 
@@ -191,7 +175,7 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
 
       return matchesSearch && matchesCategory && matchesStatus && matchesBranch
     })
-  }, [vehicles, activeVehicles, returnedVehicles, availabilityVehicles, searchQuery, categoryFilter, statusFilter, branchFilter, showReturnedVehicles])
+  }, [vehicles, activeVehicles, returnedVehicles, searchQuery, categoryFilter, statusFilter, branchFilter, showReturnedVehicles])
 
   return (
     <div className="space-y-6">
@@ -250,97 +234,87 @@ export function VehicleTrackingDashboard({ vehicles, categories }: Props) {
       </div>
 
       {/* Vehicle Status Filter Buttons */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Filter by Vehicle Status</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="px-4 py-3">
+          <CardTitle className="text-sm font-semibold">Filter by Vehicle Status</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+        <CardContent className="px-4 pb-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
             <Button
               variant={statusFilter === 'all' ? 'default' : 'outline'}
-              className="flex flex-col h-auto py-4 gap-1"
+              className="flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2"
               onClick={() => setStatusFilter('all')}
             >
-              <Car className="h-6 w-6" />
-              <span className="text-lg font-bold">{vehicles.length}</span>
+              <Car className="h-4 w-4" />
+              <span className="text-base font-bold">{vehicles.length}</span>
               <span className="text-xs">All Vehicles</span>
             </Button>
             
             <Button
               variant={statusFilter === 'running' ? 'default' : 'outline'}
-              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'running' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-500/50 text-emerald-700 hover:bg-emerald-50'}`}
+              className={`flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2 ${statusFilter === 'running' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-500/50 text-emerald-700 hover:bg-emerald-50'}`}
               onClick={() => setStatusFilter('running')}
             >
-              <PlayCircle className="h-6 w-6" />
-              <span className="text-lg font-bold">{statusCounts.running}</span>
+              <PlayCircle className="h-4 w-4" />
+              <span className="text-base font-bold">{statusCounts.running}</span>
               <span className="text-xs">Running</span>
             </Button>
             
             <Button
               variant={statusFilter === 'idle' ? 'default' : 'outline'}
-              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'idle' ? 'bg-amber-500 hover:bg-amber-600' : 'border-amber-500/50 text-amber-700 hover:bg-amber-50'}`}
+              className={`flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2 ${statusFilter === 'idle' ? 'bg-amber-500 hover:bg-amber-600' : 'border-amber-500/50 text-amber-700 hover:bg-amber-50'}`}
               onClick={() => setStatusFilter('idle')}
             >
-              <PauseCircle className="h-6 w-6" />
-              <span className="text-lg font-bold">{statusCounts.idle}</span>
+              <PauseCircle className="h-4 w-4" />
+              <span className="text-base font-bold">{statusCounts.idle}</span>
               <span className="text-xs">Idle</span>
             </Button>
             
             <Button
               variant={statusFilter === 'garage' ? 'default' : 'outline'}
-              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'garage' ? 'bg-slate-600 hover:bg-slate-700' : 'border-slate-500/50 text-slate-700 hover:bg-slate-50'}`}
+              className={`flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2 ${statusFilter === 'garage' ? 'bg-slate-600 hover:bg-slate-700' : 'border-slate-500/50 text-slate-700 hover:bg-slate-50'}`}
               onClick={() => setStatusFilter('garage')}
             >
-              <Warehouse className="h-6 w-6" />
-              <span className="text-lg font-bold">{statusCounts.garage}</span>
+              <Warehouse className="h-4 w-4" />
+              <span className="text-base font-bold">{statusCounts.garage}</span>
               <span className="text-xs">In Garage</span>
             </Button>
             
             <Button
               variant={statusFilter === 'available' ? 'default' : 'outline'}
-              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'available' ? 'bg-sky-600 hover:bg-sky-700' : 'border-sky-500/50 text-sky-700 hover:bg-sky-50'}`}
+              className={`flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2 ${statusFilter === 'available' ? 'bg-sky-600 hover:bg-sky-700' : 'border-sky-500/50 text-sky-700 hover:bg-sky-50'}`}
               onClick={() => setStatusFilter('available')}
             >
-              <CheckCircle2 className="h-6 w-6" />
-              <span className="text-lg font-bold">{statusCounts.available}</span>
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="text-base font-bold">{statusCounts.available}</span>
               <span className="text-xs">Reserved</span>
             </Button>
             
             <Button
               variant={statusFilter === 'maintenance' ? 'default' : 'outline'}
-              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'maintenance' ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500/50 text-purple-700 hover:bg-purple-50'}`}
+              className={`flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2 ${statusFilter === 'maintenance' ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500/50 text-purple-700 hover:bg-purple-50'}`}
               onClick={() => setStatusFilter('maintenance')}
             >
-              <Wrench className="h-6 w-6" />
-              <span className="text-lg font-bold">{statusCounts.maintenance}</span>
+              <Wrench className="h-4 w-4" />
+              <span className="text-base font-bold">{statusCounts.maintenance}</span>
               <span className="text-xs">Maintenance</span>
             </Button>
             
             {/* Returned vehicles can be selected to reveal the archive action in each row */}
             <Button
               variant={statusFilter === 'returned' ? 'default' : 'outline'}
-              className={`flex flex-col h-auto py-4 gap-1 ${statusFilter === 'returned' ? 'bg-rose-600 hover:bg-rose-700' : 'border-rose-500/50 text-rose-700 hover:bg-rose-50'}`}
+              className={`flex min-h-14 h-auto flex-col gap-0.5 px-2 py-2 ${statusFilter === 'returned' ? 'bg-rose-600 hover:bg-rose-700' : 'border-rose-500/50 text-rose-700 hover:bg-rose-50'}`}
               onClick={() => setStatusFilter('returned')}
             >
-              <Archive className="h-6 w-6" />
-              <span className="text-lg font-bold">{statusCounts.returned}</span>
+              <Archive className="h-4 w-4" />
+              <span className="text-base font-bold">{statusCounts.returned}</span>
               <span className="text-xs">Returned / Remove</span>
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Availability search */}
-      <Card className="border-primary/15 bg-primary/[0.03]">
-        <CardHeader className="pb-3"><CardTitle className="text-lg">Vehicle availability search</CardTitle><p className="text-sm text-muted-foreground">Find vehicles that are idle now or become available during your selected period.</p></CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
-            {(['tomorrow', 'week', 'month', 'custom'] as const).map((preset) => <Button key={preset} type="button" size="sm" variant={availabilityPreset === preset ? 'default' : 'outline'} onClick={() => setAvailabilityPreset(preset)}>{preset === 'tomorrow' ? 'Tomorrow' : preset === 'week' ? 'This Week' : preset === 'month' ? 'This Month' : 'Custom Range'}</Button>)}
-          </div>
-          {availabilityPreset === 'custom' && <div className="grid gap-3 sm:grid-cols-2"><div><label htmlFor="availability-from" className="mb-1 block text-xs font-medium">From</label><Input id="availability-from" type="date" value={availabilityFrom} onChange={(event) => setAvailabilityFrom(event.target.value)} /></div><div><label htmlFor="availability-to" className="mb-1 block text-xs font-medium">To</label><Input id="availability-to" type="date" min={availabilityFrom} value={availabilityTo} onChange={(event) => setAvailabilityTo(event.target.value)} /></div></div>}
-          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground"><Badge variant="secondary">{availabilityVehicles.length} vehicles in range</Badge><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">{availabilityVehicles.filter((vehicle) => vehicle.status === 'idle' || vehicle.status === 'available').length} ready or idle</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">{availabilityVehicles.filter((vehicle) => vehicle.return_date && vehicle.return_date >= availabilityRange.from && vehicle.return_date <= availabilityRange.to).length} becoming available</span></div>
-        </CardContent>
-      </Card>
+
 
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">

@@ -8,7 +8,7 @@ export const metadata = {
 export default function ReturnsPage() {
   return (
     <div className="container mx-auto py-8 px-4">
-      <UpcomingReturns fullPage />
+      <UpcomingReturns />
     </div>
   )
 }
