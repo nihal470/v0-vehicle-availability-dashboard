@@ -3,9 +3,8 @@
 import { ReturnsSummary } from './returns-summary'
 import { ActiveAlerts } from '@/components/vehicles/active-alerts'
 import { DocumentExpiry } from './document-expiry'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, ChevronRight, Info, Receipt, ClipboardCheck } from 'lucide-react'
+import { FileText, ChevronRight, Info, Gauge, GanttChartSquare, Building2, Wrench, CalendarDays, Users, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import type { CategoryWithVehicles, Location, VehicleCategory, Vehicle, VehicleBooking } from '@/lib/types'
 
@@ -16,10 +15,6 @@ interface DashboardProps {
   vehicles: Vehicle[]
   todayBookingsCount: number
   bookings: VehicleBooking[]
-}
-
-function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
-  return <Link href={href} className="block"><Button variant="outline" className="w-full justify-start gap-2 group hover:border-primary hover:bg-primary/5">{icon}{label}</Button></Link>
 }
 
 export function Dashboard({ 
@@ -47,7 +42,7 @@ export function Dashboard({
           { label: 'Maintenance', value: maintenanceVehicles.length, detail: 'Not available to rent', tone: 'bg-rose-50 text-rose-950' },
         ].map((metric) => <Card key={metric.label} className={`overflow-hidden border-0 shadow-sm ${metric.tone}`}><CardContent className="p-5"><p className="text-sm font-medium opacity-75">{metric.label}</p><p className="mt-2 text-3xl font-bold tracking-tight">{metric.value}</p><p className="mt-1 text-xs opacity-70">{metric.detail}</p></CardContent></Card>)}
       </section>
-      <div className="max-w-xl">
+      <div>
         <Card className="overflow-hidden border-primary/15 bg-background/90 shadow-sm"><div className="h-1 bg-gradient-to-r from-primary via-cyan-500 to-emerald-500" />
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
@@ -55,33 +50,17 @@ export function Dashboard({
               Quick Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Link href="/vehicle-logs" className="block">
-              <Button variant="outline" className="w-full justify-between group hover:border-primary hover:bg-primary/5">
-                <span className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  Trip Logs & Fines
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Button>
-            </Link>
-            <Link href="/payments" className="block">
-              <Button variant="outline" className="w-full justify-between group hover:border-primary hover:bg-primary/5">
-                <span className="flex items-center gap-2">
-                  <Receipt className="h-4 w-4 text-primary" />
-                  Payments & Receipts
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Button>
-            </Link>
-            <div className="grid gap-2 sm:grid-cols-2">
-                          <Link href="/bookings?date=today" className="block sm:col-span-2">
-                <Button variant="outline" className="w-full justify-between group border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10">
-                  <span className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4 text-primary" />Today&apos;s Bookings</span>
-                  <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">{todayBookingsCount}</span>
-                </Button>
-              </Link>
-            </div>
+          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[
+              ['/bookings', 'Bookings', CalendarDays],
+              ['/vehicles', 'Vehicle Tracking', Gauge],
+              ['/branches', 'Branches', Building2],
+              ['/vehicle-service', 'Vehicle Service', Wrench],
+              ['/vehicle-logs', 'Trip Logs & Fines', FileText],
+              ['/customers', 'Customers', Users],
+              ['/payments', 'Payments & Receipts', CreditCard],
+              ['/gantt', 'Fleet Schedule', GanttChartSquare],
+            ].map(([href, label, Icon]) => <Link key={String(href)} href={String(href)} className="group rounded-xl border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.04]"><div className="flex items-center justify-between"><span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="size-4" /></span><ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" /></div><p className="mt-3 text-sm font-semibold">{String(label)}</p><p className="mt-1 text-xs text-muted-foreground">Open module</p></Link>)}
           </CardContent>
         </Card>
       </div>

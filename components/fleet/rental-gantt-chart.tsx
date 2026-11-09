@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Vehicle } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, Search, CalendarRange, SlidersHorizontal, ZoomIn, ZoomOut, Maximize2, Info } from 'lucide-react'
 import {
-  startOfDay,
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
@@ -42,17 +41,11 @@ function parseDate(value: string | null): Date | null {
 }
 
 export function RentalGanttChart({ vehicles }: Props) {
-  const [currentMonth, setCurrentMonth] = useState(() => new Date(2026, 9, 1))
-  const [isMounted, setIsMounted] = useState(false)
+  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    setCurrentMonth(new Date(2026, 9, 1))
-    setIsMounted(true)
-  }, [])
   const [statusFilter, setStatusFilter] = useState<string>('agreements')
 
-  const monthStart = useMemo(() => isMounted ? startOfDay(currentMonth) : startOfMonth(currentMonth), [currentMonth, isMounted])
+  const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth])
   const monthEnd = useMemo(() => endOfMonth(currentMonth), [currentMonth])
   const days = useMemo(
     () => eachDayOfInterval({ start: monthStart, end: monthEnd }),
@@ -99,24 +92,24 @@ export function RentalGanttChart({ vehicles }: Props) {
     return { left, width, continuesLeft, continuesRight }
   }
 
-  const monthLabel = isMounted ? `${format(monthStart, 'dd MMMM yyyy')} – ${format(monthEnd, 'dd MMMM yyyy')}` : 'Loading planner…'
+  const monthLabel = `${format(monthStart, 'dd MMMM yyyy')} – ${format(monthEnd, 'dd MMMM yyyy')}`
   const barClass = (status: string) => status === 'running' ? 'bg-sky-500' : status === 'reserved' ? 'bg-violet-600' : status === 'available' ? 'bg-emerald-500' : status === 'maintenance' ? 'bg-orange-500' : 'bg-slate-400'
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-t-xl border bg-background px-5 py-4">
+      <div className="grid gap-4 rounded-t-xl border bg-background px-5 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
           <span className="flex size-9 items-center justify-center rounded-full border text-muted-foreground"><Info className="size-4" /></span>
           {[['running', 'Booking', 'bg-sky-500'], ['reserved', 'Reserved', 'bg-violet-600'], ['available', 'Rental', 'bg-orange-500'], ['open', 'Open', 'bg-slate-400'], ['maintenance', 'In service', 'bg-orange-500'], ['done', 'Done', 'bg-emerald-500']].map(([key, label, color]) => <button key={key} type="button" onClick={() => setStatusFilter(key === 'open' ? 'agreements' : key)} className={`rounded-full px-3 py-1 text-white ${color} ${statusFilter === key ? 'ring-2 ring-primary ring-offset-2' : ''}`}>{label}</button>)}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm"><SlidersHorizontal className="mr-2 size-4" />Filters</Button>
-          <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm text-muted-foreground"><CalendarRange className="size-4 text-primary" />{monthLabel}</div>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+          <Button variant="outline" size="sm" className="col-span-2 sm:col-span-1"><SlidersHorizontal className="mr-2 size-4" />Filters</Button>
+          <div className="col-span-2 flex min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm text-muted-foreground sm:col-span-1"><CalendarRange className="size-4 shrink-0 text-primary" /><span className="truncate">{monthLabel}</span></div>
           <Button variant="outline" size="icon" aria-label="Zoom in"><ZoomIn className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Zoom out"><ZoomOut className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Expand planner"><Maximize2 className="size-4" /></Button>
         </div>
       </div>
       {/* Controls */}
-      <div className="flex flex-col gap-3 border-x border-b bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="grid gap-3 border-x border-b bg-muted/20 px-4 py-3 lg:grid-cols-[auto_1fr] lg:items-center">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -141,13 +134,13 @@ export function RentalGanttChart({ vehicles }: Props) {
             variant="ghost"
             size="sm"
             className="ml-1"
-            onClick={() => setCurrentMonth(startOfDay(new Date()))}
+            onClick={() => setCurrentMonth(startOfMonth(new Date()))}
           >
             Today
           </Button>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="grid gap-2 sm:grid-cols-[minmax(220px,1fr)_160px] sm:items-center lg:justify-self-end">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
